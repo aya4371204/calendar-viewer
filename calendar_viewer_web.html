@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会議室 利用状況ビューア (ウェブ版)</title>
+    <link rel="stylesheet" href="style_web.css"> <!-- CSSファイルも別途用意 -->
+    <style>
+        /* ここに full_view.html の <style> タグ内のCSSを記述、または外部CSSファイルで管理 */
+        /* 例: body, h1, #controls, #dataDisplayArea, #dailyMatrixTable などのスタイル */
+        #signInButton, #signOutButton {
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>会議室 利用状況</h1>
+
+    <div id="authControls">
+        <button id="signInButton" style="display: none;">Googleでサインイン</button>
+        <button id="signOutButton" style="display: none;">サインアウト</button>
+    </div>
+
+    <div id="viewSelector">
+        <label><input type="radio" name="viewType" value="dailyMatrix" checked> 日別マトリクス</label>
+        <label><input type="radio" name="viewType" value="weeklyRoom"> 会議室別週間</label>
+    </div>
+
+    <div id="controls">
+        <div id="dailyControls">
+            <label for="dailyDatePicker">日付:</label>
+            <input type="date" id="dailyDatePicker">
+            <button id="prevDayBtn" title="前の日">&lt;</button>
+            <button id="nextDayBtn" title="次の日">&gt;</button>
+        </div>
+        <div id="weeklyControls" style="display: none;">
+            <label for="roomSelector">会議室:</label>
+            <select id="roomSelector"></select>
+            <label for="weekDisplay">表示週:</label>
+            <span id="weekDisplaySpan"></span>
+            <button id="prevWeekBtn" title="前の週">&lt;</button>
+            <button id="nextWeekBtn" title="次の週">&gt;</button>
+        </div>
+    </div>
+
+    <div id="loading" style="display: none;">読み込み中...</div>
+    <div id="error" style="display: none;"></div>
+    <div id="dataDisplayArea">
+        <!-- 会議室の状況がここに表示されます -->
+    </div>
+
+    <script src="calendar_viewer_web.js"></script> <!-- JavaScriptファイルも別途用意 -->
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</body>
+</html>
