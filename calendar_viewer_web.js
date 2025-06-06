@@ -25,7 +25,7 @@ function gisLoaded() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
-        callback: '', 
+        callback: '',
     });
     gisInited = true;
     document.dispatchEvent(new Event('gisReady'));
@@ -146,9 +146,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const responses = await Promise.all(requests);
             responses.forEach((response, index) => {
                 const calendarId = idsToFetchDetails[index];
-                allCalendarData[calendarId] = {
-                    items: response.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] }))
-                };
+                if (response.result.items) {
+                    allCalendarData[calendarId] = {
+                        items: response.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] }))
+                    };
+                }
             });
             showLoading(false);
             if (currentView === 'dailyMatrix') renderDailyMatrixView(allCalendarData); else renderWeeklyRoomView(allCalendarData);
@@ -159,7 +161,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Rendering Logic ---
     function renderDailyMatrixView(calendarsEventData) {
-        // ... (renderDailyMatrixView のロジックは変更なし) ...
+        dataDisplayArea.innerHTML = ''; 
+        const table = document.createElement('table'); table.id = 'dailyMatrixTable';
+        const thead = table.createTHead(); 
+        const headerRow = thead.insertRow();
+        const thRoomHeader = document.createElement('th'); 
+        thRoomHeader.textContent = '会議室'; 
+        headerRow.appendChild(thRoomHeader);
+        const startHour = 8; const endHour = 19; const timeSlotInterval = 30; 
+        for (let h = startHour; h < endHour; h++) {
+            for (let m = 0; m < 60; m += timeSlotInterval) { 
+                const thHour = document.createElement('th');
+                thHour.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                headerRow.appendChild(thHour);
+            }
+        }
+        const tbody = table.createTBody();
+        resourceCalendarItems.forEach(room => {
+            const roomRow = tbody.insertRow();
+            const tdRoomName = roomRow.insertCell();
+            tdRoomName.textContent = room.name;
+            tdRoomName.title = room.name; 
+            const roomData = calendarsEventData[room.id];
+            let lastBusyCellForThisEvent = null;
+            for (let h = startHour; h < endHour; h++) {
+                for (let m = 0; m < 60; m += timeSlotInterval) { 
+                    const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
+                    const slotEndTime = new Date(selectedDate); slotEndTime.setHours(h, m + timeSlotInterval, 0, 0); 
+                    let overlappingEvent = null; 
+                    if (roomData && roomData.items) {
+                        for (const event of roomData.items) {
+                            const eventStart = new Date(event.start.dateTime || event.start.date);
+                            const eventEnd = new Date(event.end.dateTime || event.end.date);
+                            if (eventStart < slotEndTime && eventEnd > slotStartTime) { overlappingEvent = event; break; }
+                        }
+                    }
+                    if (overlappingEvent) {
+                        if (lastBusyCellForThisEvent && lastBusyCellForThisEvent.dataset.eventId === overlappingEvent.id) {
+                            lastBusyCellForThisEvent.colSpan += 1;
+                        } else {
+                            const tdHourStatus = roomRow.insertCell();
+                            tdHourStatus.textContent = overlappingEvent.summary;
+                            tdHourStatus.dataset.eventId = overlappingEvent.id;
+                            const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
+                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
+                            tdHourStatus.title = titleDetails; 
+                            tdHourStatus.classList.add('matrix-cell-busy');
+                            tdHourStatus.colSpan = 1;
+                            lastBusyCellForThisEvent = tdHourStatus;
+                        }
+                    } else {
+                        lastBusyCellForThisEvent = null;
+                        const tdHourStatus = roomRow.insertCell();
+                        tdHourStatus.classList.add('matrix-cell-available');
+                    }
+                }
+            }
+        });
+        dataDisplayArea.appendChild(table);
     }
     function renderWeeklyRoomView(calendarsEventData) {
         // ... (renderWeeklyRoomView のロジックは変更なし) ...
