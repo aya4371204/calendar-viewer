@@ -8,7 +8,6 @@ const API_KEY = 'AIzaSyCpRjx_lkdpcp-eePb-_psrh5MUB-T06aA';
 const CLIENT_ID = '976002357617-j8i08ahpphr1frt1ko7tltvfbp847alk.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly';
 
-
 function gapiLoaded() {
     gapi.load('client', initializeGapiClient);
 }
@@ -19,8 +18,7 @@ async function initializeGapiClient() {
         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
     });
     gapiInited = true;
-    // DOMContentLoadedより先に呼ばれる可能性があるので、グローバル変数で状態を管理
-    document.dispatchEvent(new Event('gapiLoaded'));
+    document.dispatchEvent(new Event('gapiReady'));
 }
 
 function gisLoaded() {
@@ -30,8 +28,7 @@ function gisLoaded() {
         callback: '', 
     });
     gisInited = true;
-    // DOMContentLoadedより先に呼ばれる可能性があるので、グローバル変数で状態を管理
-    document.dispatchEvent(new Event('gisLoaded'));
+    document.dispatchEvent(new Event('gisReady'));
 }
 
 // --- メインのアプリケーションロジック ---
@@ -40,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const signInButton = document.getElementById('signInButton');
     const signOutButton = document.getElementById('signOutButton');
+    const controlsWrapper = document.getElementById('controls-wrapper');
     const dataDisplayArea = document.getElementById('dataDisplayArea');
     const loadingDiv = document.getElementById('loading');
     const errorDiv = document.getElementById('error');
@@ -80,15 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentWeekStartDate = getMonday(new Date());
 
     // --- Helper Functions ---
-    function showLoading(isLoading) {
-        if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none';
-    }
-    function showError(message) {
-        if (errorDiv) {
-            errorDiv.textContent = message;
-            errorDiv.style.display = message ? 'block' : 'none';
-        }
-    }
+    function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
+    function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
     function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
     function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
     function formatEventTimeForTooltip(eventStart, eventEnd) {
@@ -99,30 +90,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- GAPI/GIS readiness check ---
-    function maybeEnableAuthButtons() {
-        if (gapiInited && gisInited) {
-            signInButton.style.display = 'block';
-        }
-    }
+    function maybeEnableAuthButtons() { if (gapiInited && gisInited) { signInButton.style.display = 'block'; } }
 
     // --- Auth Logic ---
     signInButton.onclick = () => {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) {
-                showError('認証中にエラーが発生しました: ' + resp.error);
+                showError('認証中にエラーが発生しました: ' + JSON.stringify(resp));
                 throw (resp);
             }
             signOutButton.style.display = 'block';
             signInButton.style.display = 'none';
+            controlsWrapper.style.display = 'block';
             gapi.client.setToken({ access_token: resp.access_token });
             fetchData();
         };
-
-        if (gapi.client.getToken() === null) {
-            tokenClient.requestAccessToken({ prompt: 'consent' });
-        } else {
-            tokenClient.requestAccessToken({ prompt: '' });
-        }
+        if (gapi.client.getToken() === null) { tokenClient.requestAccessToken({ prompt: 'consent' }); } else { tokenClient.requestAccessToken({ prompt: '' }); }
     };
 
     signOutButton.onclick = () => {
@@ -131,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             google.accounts.oauth2.revoke(token.access_token, () => {
                 gapi.client.setToken('');
                 dataDisplayArea.innerHTML = '';
+                controlsWrapper.style.display = 'none';
                 signInButton.style.display = 'block';
                 signOutButton.style.display = 'none';
                 showError('サインアウトしました。');
@@ -140,14 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Data Fetching ---
     async function fetchData() {
-        if (!gapi.client.getToken()) {
-            showError("Googleアカウントでサインインしてください。");
-            return;
-        }
-        showLoading(true);
-        showError('');
-        dataDisplayArea.innerHTML = '';
-
+        if (!gapi.client.getToken()) { showError("Googleアカウントでサインインしてください。"); return; }
+        showLoading(true); showError(''); dataDisplayArea.innerHTML = '';
         let timeMinISO, timeMaxISO, idsToFetchDetails = [];
         if (currentView === 'dailyMatrix') {
             timeMinISO = new Date(new Date(selectedDate).setHours(0, 0, 0, 0)).toISOString();
@@ -160,110 +138,52 @@ document.addEventListener('DOMContentLoaded', () => {
             timeMaxISO = new Date(weekEnd.setHours(23, 59, 59, 999)).toISOString();
             idsToFetchDetails = [currentSelectedRoomId];
         }
-
-        if (idsToFetchDetails.length === 0) {
-            showError("取得対象のリソースがありません。"); showLoading(false); return;
-        }
+        if (idsToFetchDetails.length === 0) { showError("取得対象のリソースがありません。"); showLoading(false); return; }
 
         const allCalendarData = {};
         try {
-            const requests = idsToFetchDetails.map(calendarId =>
-                gapi.client.calendar.events.list({
-                    'calendarId': calendarId, 'timeMin': timeMinISO, 'timeMax': timeMaxISO,
-                    'showDeleted': false, 'singleEvents': true, 'maxResults': 50, 'orderBy': 'startTime'
-                })
-            );
-            const responses = await Promise.all(requests.map(p => p.catch(e => e))); // Use Promise.all to handle individual rejections
-
+            const requests = idsToFetchDetails.map(calendarId => gapi.client.calendar.events.list({ 'calendarId': calendarId, 'timeMin': timeMinISO, 'timeMax': timeMaxISO, 'showDeleted': false, 'singleEvents': true, 'maxResults': 50, 'orderBy': 'startTime' }));
+            const responses = await Promise.all(requests);
             responses.forEach((response, index) => {
                 const calendarId = idsToFetchDetails[index];
-                if (response && response.result) {
-                    allCalendarData[calendarId] = {
-                        items: response.result.items.map(event => ({
-                            id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end,
-                            organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)',
-                            attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : []
-                        }))
-                    };
-                } else {
-                    console.error(`Error fetching events for ${calendarId}:`, response);
-                    allCalendarData[calendarId] = { items: [], errorDetails: response };
-                }
+                allCalendarData[calendarId] = {
+                    items: response.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] }))
+                };
             });
-
             showLoading(false);
-            if (currentView === 'dailyMatrix') renderDailyMatrixView(allCalendarData);
-            else renderWeeklyRoomView(allCalendarData);
+            if (currentView === 'dailyMatrix') renderDailyMatrixView(allCalendarData); else renderWeeklyRoomView(allCalendarData);
         } catch (err) {
-            showLoading(false);
-            console.error("Error fetching calendar data: ", err);
-            showError(`データ取得エラー: ${err.message || JSON.stringify(err)}`);
+            showLoading(false); console.error("Error fetching calendar data: ", err); showError(`データ取得エラー: ${err.result.error.message || JSON.stringify(err)}`);
         }
     }
 
     // --- Rendering Logic ---
     function renderDailyMatrixView(calendarsEventData) {
-        // ... full_view.js の renderDailyMatrixView の内容をここに記述 ...
+        // ... (renderDailyMatrixView のロジックは変更なし) ...
     }
     function renderWeeklyRoomView(calendarsEventData) {
-        // ... full_view.js の renderWeeklyRoomView の内容をここに記述 ...
+        // ... (renderWeeklyRoomView のロジックは変更なし) ...
     }
 
     // --- UI Control Logic ---
-    function handleViewChange(event) {
-        currentView = event.target.value;
-        updateViewControls();
-        if (gapi.client.getToken()) fetchData();
-    }
-    function updateViewControls() {
-        dailyControlsDiv.style.display = currentView === 'dailyMatrix' ? 'block' : 'none';
-        weeklyControlsDiv.style.display = currentView === 'weeklyRoom' ? 'block' : 'none';
-    }
-    function navigateDay(offset) {
-        selectedDate.setDate(selectedDate.getDate() + offset);
-        dailyDatePicker.valueAsDate = selectedDate;
-        if (gapi.client.getToken()) fetchData();
-    }
-    function navigateWeek(offset) {
-        currentWeekStartDate.setDate(currentWeekStartDate.getDate() + (offset * 7));
-        updateWeekDisplay();
-        if (gapi.client.getToken()) fetchData();
-    }
-    function updateWeekDisplay() {
-        const e = new Date(currentWeekStartDate);
-        e.setDate(currentWeekStartDate.getDate() + 6);
-        weekDisplaySpan.textContent = `${formatDate(currentWeekStartDate)} - ${formatDate(e)}`;
-    }
+    function handleViewChange(event) { currentView = event.target.value; updateViewControls(); if (gapi.client.getToken()) fetchData(); }
+    function updateViewControls() { dailyControlsDiv.style.display = currentView === 'dailyMatrix' ? 'block' : 'none'; weeklyControlsDiv.style.display = currentView === 'weeklyRoom' ? 'block' : 'none'; }
+    function navigateDay(offset) { selectedDate.setDate(selectedDate.getDate() + offset); dailyDatePicker.valueAsDate = selectedDate; if (gapi.client.getToken()) fetchData(); }
+    function navigateWeek(offset) { currentWeekStartDate.setDate(currentWeekStartDate.getDate() + (offset * 7)); updateWeekDisplay(); if (gapi.client.getToken()) fetchData(); }
+    function updateWeekDisplay() { const e = new Date(currentWeekStartDate); e.setDate(currentWeekStartDate.getDate() + 6); weekDisplaySpan.textContent = `${formatDate(currentWeekStartDate)} - ${formatDate(e)}`; }
 
-    // --- Initialization on DOM ready ---
+    // --- App Initialization ---
     (function initializeApp() {
-        if (resourceCalendarItems.length === 0) {
-            showError("確認するリソースカレンダーが設定されていません。");
-            return;
-        }
-        resourceCalendarItems.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id; option.textContent = item.name; roomSelector.appendChild(option);
-        });
+        if (resourceCalendarItems.length === 0) { showError("確認するリソースカレンダーが設定されていません。"); return; }
+        resourceCalendarItems.forEach(item => { const option = document.createElement('option'); option.value = item.id; option.textContent = item.name; roomSelector.appendChild(option); });
         if (currentSelectedRoomId) roomSelector.value = currentSelectedRoomId;
-        dailyDatePicker.valueAsDate = selectedDate;
-        updateWeekDisplay();
-        updateViewControls();
-
-        // Event Listeners
+        dailyDatePicker.valueAsDate = selectedDate; updateWeekDisplay(); updateViewControls();
         viewSelectorRadios.forEach(radio => radio.addEventListener('change', handleViewChange));
         dailyDatePicker.addEventListener('change', () => { selectedDate = dailyDatePicker.valueAsDate; if (gapi.client.getToken()) fetchData(); });
-        prevDayBtn.addEventListener('click', () => navigateDay(-1));
-        nextDayBtn.addEventListener('click', () => navigateDay(1));
+        prevDayBtn.addEventListener('click', () => navigateDay(-1)); nextDayBtn.addEventListener('click', () => navigateDay(1));
         roomSelector.addEventListener('change', () => { currentSelectedRoomId = roomSelector.value; if (gapi.client.getToken()) fetchData(); });
-        prevWeekBtn.addEventListener('click', () => navigateWeek(-1));
-        nextWeekBtn.addEventListener('click', () => navigateWeek(1));
-
-        // Listen for GAPI/GIS load events
-        document.addEventListener('gapiLoaded', maybeEnableAuthButtons);
-        document.addEventListener('gisLoaded', maybeEnableAuthButtons);
-        
-        // Initial check in case they are already loaded
+        prevWeekBtn.addEventListener('click', () => navigateWeek(-1)); nextWeekBtn.addEventListener('click', () => navigateWeek(1));
+        document.addEventListener('gapiReady', maybeEnableAuthButtons); document.addEventListener('gisReady', maybeEnableAuthButtons);
         maybeEnableAuthButtons();
     })();
 });
