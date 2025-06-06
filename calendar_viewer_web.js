@@ -143,19 +143,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const allCalendarData = {};
         try {
             const requests = idsToFetchDetails.map(calendarId => gapi.client.calendar.events.list({ 'calendarId': calendarId, 'timeMin': timeMinISO, 'timeMax': timeMaxISO, 'showDeleted': false, 'singleEvents': true, 'maxResults': 50, 'orderBy': 'startTime' }));
-            const responses = await Promise.all(requests);
+            const responses = await Promise.allSettled(requests);
             responses.forEach((response, index) => {
                 const calendarId = idsToFetchDetails[index];
-                if (response.result.items) {
-                    allCalendarData[calendarId] = {
-                        items: response.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] }))
+                if (response.status === 'fulfilled' && response.value.result) {
+                     allCalendarData[calendarId] = {
+                        items: response.value.result.items ? response.value.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] })) : []
                     };
+                } else {
+                    console.error(`Error fetching events for ${calendarId}:`, response.reason || response.value);
+                    allCalendarData[calendarId] = { items: [], errorDetails: response.reason || response.value };
                 }
             });
             showLoading(false);
             if (currentView === 'dailyMatrix') renderDailyMatrixView(allCalendarData); else renderWeeklyRoomView(allCalendarData);
         } catch (err) {
-            showLoading(false); console.error("Error fetching calendar data: ", err); showError(`データ取得エラー: ${err.result ? err.result.error.message : JSON.stringify(err)}`);
+            showLoading(false); console.error("A critical error occurred: ", err); showError(`重大なエラーが発生しました: ${err.message || JSON.stringify(err)}`);
         }
     }
 
@@ -205,21 +208,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (overlappingEvent) {
                         const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
-                        const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
-                        if (eventStart >= slotStartTime) {
+                        if (eventStart >= slotStartTime && eventStart < slotEndTime) {
+                           const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
                            const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
                            const colspanCount = Math.ceil(durationInMinutes / timeSlotInterval);
                            slotsToSkip = colspanCount - 1;
-
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
-
                            const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
-                           tdHourStatus.textContent = `${eventTime}\n${overlappingEvent.summary}`; // ★ 表示内容を2行に変更
-
+                           tdHourStatus.textContent = `${eventTime}\n${overlappingEvent.summary}`;
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy');
+                        } else {
+                            // This slot is covered by a previously merged cell, so do nothing.
                         }
                     } else {
                         const tdHourStatus = roomRow.insertCell();
