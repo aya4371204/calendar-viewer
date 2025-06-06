@@ -208,11 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (overlappingEvent) {
                         const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
+                        // セル結合ロジック: イベントの開始が現在のスロット内にある場合のみセルを生成
                         if (eventStart >= slotStartTime && eventStart < slotEndTime) {
                            const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
                            const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
-                           const colspanCount = Math.ceil(durationInMinutes / timeSlotInterval);
+                           const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                            slotsToSkip = colspanCount - 1;
+
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
                            const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
@@ -230,9 +232,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         dataDisplayArea.appendChild(table);
     }
+    
     function renderWeeklyRoomView(calendarsEventData) {
-        // ... (renderWeeklyRoomView のロジックは変更なし) ...
+        dataDisplayArea.innerHTML = '';
+        const roomData = calendarsEventData[currentSelectedRoomId];
+        const room = resourceCalendarItems.find(r => r.id === currentSelectedRoomId);
+        
+        if (!room) { showError("選択された会議室の情報が見つかりません。"); return; }
+
+        const roomHeader = document.createElement('h3');
+        roomHeader.textContent = `${room.name} の週間予定 (${formatDate(currentWeekStartDate)} - ${formatDate(new Date(new Date(currentWeekStartDate).setDate(currentWeekStartDate.getDate() + 6)))})`;
+        dataDisplayArea.appendChild(roomHeader);
+
+        const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+
+        for (let i = 0; i < 7; i++) {
+            const day = new Date(currentWeekStartDate);
+            day.setDate(currentWeekStartDate.getDate() + i);
+            const dayItemDiv = document.createElement('div');
+            dayItemDiv.className = 'weekly-day-item';
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'weekly-day-header';
+            dayHeader.textContent = `${formatDate(day)} (${daysOfWeek[day.getDay()]})`;
+            dayItemDiv.appendChild(dayHeader);
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'weekly-status';
+            let dayHasEvents = false;
+
+            if (roomData && roomData.items && roomData.items.length > 0) {
+                roomData.items.forEach(event => {
+                    const eventStart = new Date(event.start.dateTime || event.start.date);
+                    const eventEnd = new Date(event.end.dateTime || event.end.date);
+                    const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
+                    const dayEnd = new Date(day); dayEnd.setHours(23, 59, 59, 999);
+
+                    // ★★★ 修正箇所: イベントがその日に「またがっている」場合に表示する ★★★
+                    if (eventStart <= dayEnd && eventEnd >= dayStart) {
+                        const busyDetails = document.createElement('div');
+                        busyDetails.className = 'weekly-busy-details';
+                        
+                        const eventTime = formatEventTimeForTooltip(event.start, event.end);
+                        let detailTextForDisplay = `${event.summary} (${eventTime})`;
+                        
+                        let titleDetails = `会議時間: ${eventTime}\n会議名: ${event.summary}\n作成者: ${event.organizer || '(不明)'}\nゲスト: ${event.attendees && event.attendees.length > 0 ? event.attendees.join(', ') : "なし"}`;
+                        
+                        busyDetails.textContent = detailTextForDisplay; 
+                        busyDetails.title = titleDetails; 
+
+                        statusDiv.appendChild(busyDetails);
+                        dayHasEvents = true;
+                    }
+                });
+            } else if (roomData && roomData.errorDetails) {
+                 console.warn(`Error fetching events for room ${room.name} (weekly):`, roomData.errorDetails);
+            }
+
+            if (dayHasEvents) {
+                statusDiv.classList.add('busy');
+            } else { 
+                statusDiv.textContent = '予定なし';
+                statusDiv.classList.add('available');
+            }
+            dayItemDiv.appendChild(statusDiv);
+            dataDisplayArea.appendChild(dayItemDiv);
+        }
     }
+
 
     // --- UI Control Logic ---
     function handleViewChange(event) { currentView = event.target.value; updateViewControls(); if (gapi.client.getToken()) fetchData(); }
