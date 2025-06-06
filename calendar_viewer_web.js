@@ -220,8 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy');
-                        } else {
-                            // This slot is covered by a previously merged cell, so do nothing.
                         }
                     } else {
                         const tdHourStatus = roomRow.insertCell();
