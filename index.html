@@ -16,10 +16,10 @@
         #controls input, #controls select, #controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #dataDisplayArea { overflow: auto; width: 100%; max-height: 80vh; margin-top: 20px; }
         #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 50px; /* ★2行表示のため高さを調整 */ }
+        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 50px; /* 2行表示のため高さを調整 */ }
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; }
-        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; /* ★会議室名列の幅を120pxに固定 */ text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
-        #dailyMatrixTable tbody td:first-child { width: 120px; /* ★会議室名列の幅を120pxに固定 */ white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
+        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 100px; /* ★会議室名列の幅を100pxに固定 */ text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
+        #dailyMatrixTable tbody td:first-child { width: 100px; /* ★会議室名列の幅を100pxに固定 */ white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
         #dailyMatrixTable tbody td:not(:first-child) { min-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
         .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; /* ★左寄せに変更 */ white-space: pre-line; /* ★改行を有効にする */ padding: 4px 5px; font-size: 10px; line-height: 1.4; /* ★行間を調整 */ }
         .matrix-cell-available { background-color: #d5f5e3; }
