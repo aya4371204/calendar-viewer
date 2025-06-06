@@ -206,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (overlappingEvent) {
                         const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
                         const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
-                        // Ensure event starts within or at the beginning of the current slot for correct colspan calculation
                         if (eventStart >= slotStartTime) {
                            const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
                            const colspanCount = Math.ceil(durationInMinutes / timeSlotInterval);
@@ -214,13 +213,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
-                           tdHourStatus.textContent = overlappingEvent.summary;
+
                            const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
+                           tdHourStatus.textContent = `${eventTime}\n${overlappingEvent.summary}`; // ★ 表示内容を2行に変更
+
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy');
                         }
-                        // If event started in a previous slot, it has been handled by colspan, so do nothing.
                     } else {
                         const tdHourStatus = roomRow.insertCell();
                         tdHourStatus.classList.add('matrix-cell-available');
