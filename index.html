@@ -6,6 +6,7 @@
     <title>会議室 利用状況ビューア (ウェブ版)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; margin: 0; background-color: #f9f9f9; color: #333; }
+        h1 { text-align: center; color: #2c3e50; }
         #authControls { text-align: center; margin-bottom: 20px; }
         #signInButton, #signOutButton { padding: 10px 15px; margin: 5px; cursor: pointer; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
         #signInButton { background-color: #4285F4; color: white; border-color: #4285F4; }
@@ -13,19 +14,18 @@
         #controls-wrapper { margin-bottom: 20px; padding: 15px; background-color: #ecf0f1; border-radius: 8px; }
         #viewSelector, #controls { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
         #controls input, #controls select, #controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
-        #dataDisplayArea { overflow: auto; width: 100%; max-height: 85vh; margin-top: 15px; } /* ★高さを調整 */
+        #dataDisplayArea { overflow: auto; width: 100%; max-height: 80vh; margin-top: 20px; }
         #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 50px; }
+        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 4px; /* ★パディングを詰める */ text-align: center; font-size: 11px; vertical-align: middle; height: 28px; /* ★行の高さを半分程度に変更 */ }
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; }
-        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 100px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
-        #dailyMatrixTable tbody td:first-child { width: 100px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
+        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
+        #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
         #dailyMatrixTable tbody td:not(:first-child) { min-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
-        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; white-space: pre-line; padding: 4px 5px; font-size: 10px; line-height: 1.4; }
+        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; white-space: pre-line; padding: 2px 4px; /* ★パディングを詰める */ font-size: 9px; /* ★フォントを小さく */ line-height: 1.2; /* ★行間を詰める */ }
         .matrix-cell-available { background-color: #d5f5e3; }
     </style>
 </head>
 <body>
-    <!-- <h1>会議室 利用状況</h1>  この行を削除 -->
     <div id="authControls">
         <button id="signInButton" style="display: none;">Googleでサインイン</button>
         <button id="signOutButton" style="display: none;">サインアウト</button>
