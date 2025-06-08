@@ -160,7 +160,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const calendarId = idsToFetchDetails[index];
                 if (response.status === 'fulfilled' && response.value.result) {
                      allCalendarData[calendarId] = {
-                        items: response.value.result.items ? response.value.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] })) : []
+                        items: response.value.result.items ? response.value.result.items.map(event => ({ 
+                            id: event.id, 
+                            summary: event.summary || '(タイトルなし)', 
+                            start: event.start, 
+                            end: event.end, 
+                            creator: event.creator ? (event.creator.displayName || event.creator.email) : '(作成者不明)',
+                            organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', 
+                            attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] 
+                        })) : []
                     };
                 } else {
                     console.error(`Error fetching events for ${calendarId}:`, response.reason || response.value);
@@ -223,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
                            tdHourStatus.colSpan = colspanCount;
                            const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
                            tdHourStatus.textContent = `${eventTime}\n${overlappingEvent.summary}`;
-                           let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
+                           let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy');
                            m += timeSlotInterval * (colspanCount - 1);
@@ -267,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         busyDetails.className = 'weekly-busy-details';
                         const eventTime = formatEventTimeForTooltip(event.start, event.end);
                         let detailTextForDisplay = `${event.summary} (${eventTime})`;
-                        let titleDetails = `会議時間: ${eventTime}\n会議名: ${event.summary}\n作成者: ${event.organizer || '(不明)'}\nゲスト: ${event.attendees && event.attendees.length > 0 ? event.attendees.join(', ') : "なし"}`;
+                        let titleDetails = `会議時間: ${eventTime}\n会議名: ${event.summary}\n作成者: ${event.creator || event.organizer || '(不明)'}\nゲスト: ${event.attendees && event.attendees.length > 0 ? event.attendees.join(', ') : "なし"}`;
                         busyDetails.textContent = detailTextForDisplay; 
                         busyDetails.title = titleDetails; 
                         statusDiv.appendChild(busyDetails);
