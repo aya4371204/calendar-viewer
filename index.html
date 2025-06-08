@@ -6,7 +6,6 @@
     <title>会議室 利用状況ビューア (ウェブ版)</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; margin: 0; background-color: #f9f9f9; color: #333; }
-        h1 { text-align: center; color: #2c3e50; }
         #authControls { text-align: center; margin-bottom: 20px; }
         #signInButton, #signOutButton { padding: 10px 15px; margin: 5px; cursor: pointer; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
         #signInButton { background-color: #4285F4; color: white; border-color: #4285F4; }
@@ -16,13 +15,41 @@
         #controls input, #controls select, #controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #dataDisplayArea { overflow: auto; width: 100%; max-height: 80vh; margin-top: 20px; }
         #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 4px; /* ★パディングを詰める */ text-align: center; font-size: 11px; vertical-align: middle; height: 28px; /* ★行の高さを半分程度に変更 */ }
+        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; }
-        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
-        #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
+        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 100px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
+        #dailyMatrixTable tbody td:first-child { width: 100px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
         #dailyMatrixTable tbody td:not(:first-child) { min-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
-        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; white-space: pre-line; padding: 2px 4px; /* ★パディングを詰める */ font-size: 9px; /* ★フォントを小さく */ line-height: 1.2; /* ★行間を詰める */ }
+        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; white-space: pre-line; padding: 2px 4px; font-size: 9px; line-height: 1.2; }
         .matrix-cell-available { background-color: #d5f5e3; }
+        #weekDisplaySpan { display: inline-block; padding: 10px; background-color: #fff; border: 1px solid #bdc3c7; border-radius: 5px; margin-right: 10px; }
+        /* ★★★ 週表示のスタイルを修正 ★★★ */
+        .weekly-day-item {
+             background-color: #fff;
+             border: 1px solid #ddd;
+             border-radius: 8px;
+             padding: 15px;
+             margin-bottom: 15px;
+             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .weekly-day-header {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .weekly-status { font-size: 16px; }
+        .weekly-status.available { color: #2ecc71; }
+        .weekly-busy-details {
+            font-size: 14px;
+            color: #555; 
+            margin-left: 0; 
+            padding: 5px 0;
+            border-top: 1px solid #eee;
+        }
+        .weekly-busy-details:first-child {
+             border-top: none; /* 最初の予定の上の線は消す */
+        }
     </style>
 </head>
 <body>
