@@ -41,16 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataDisplayArea = document.getElementById('dataDisplayArea');
     const loadingDiv = document.getElementById('loading');
     const errorDiv = document.getElementById('error');
-    const viewSelectorRadios = document.querySelectorAll('input[name="viewType"]');
-    const dailyControlsDiv = document.getElementById('dailyControls');
-    const weeklyControlsDiv = document.getElementById('weeklyControls');
     const dailyDatePicker = document.getElementById('dailyDatePicker');
     const prevDayBtn = document.getElementById('prevDayBtn');
     const nextDayBtn = document.getElementById('nextDayBtn');
-    const roomSelector = document.getElementById('roomSelector');
-    const weekDisplaySpan = document.getElementById('weekDisplaySpan');
-    const prevWeekBtn = document.getElementById('prevWeekBtn');
-    const nextWeekBtn = document.getElementById('nextWeekBtn');
 
     // --- Resource Data ---
     const resourceCalendarItems = [
@@ -72,16 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- State Variables ---
-    let currentView = 'dailyMatrix';
     let selectedDate = new Date();
-    let currentSelectedRoomId = resourceCalendarItems.length > 0 ? resourceCalendarItems[0].id : null;
-    let currentWeekStartDate = getMonday(new Date());
 
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
-    function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
-    function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
     function formatEventTimeForTooltip(eventStart, eventEnd) {
         const options = { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
         const startTime = new Date(eventStart.dateTime || eventStart.date).toLocaleTimeString('ja-JP', options);
@@ -93,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleAuthResponse(resp) {
         if (resp.error !== undefined) {
             if (resp.error === 'popup_closed' || resp.error === 'user_cancel' || resp.error === 'immediate_failed') {
-                console.log('Silent sign-in failed or user cancelled.');
                 signInButton.style.display = 'block';
             } else {
                 showError('認証中にエラーが発生しました: ' + JSON.stringify(resp));
@@ -103,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         signOutButton.style.display = 'block';
         signInButton.style.display = 'none';
-        controlsWrapper.style.display = 'block';
+        controlsWrapper.style.display = 'flex';
         gapi.client.setToken({ access_token: resp.access_token });
         fetchData();
     }
@@ -138,18 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchData() {
         if (!gapi.client.getToken()) { showError("Googleアカウントでサインインしてください。"); return; }
         showLoading(true); showError(''); dataDisplayArea.innerHTML = '';
-        let timeMinISO, timeMaxISO, idsToFetchDetails = [];
-        if (currentView === 'dailyMatrix') {
-            timeMinISO = new Date(new Date(selectedDate).setHours(0, 0, 0, 0)).toISOString();
-            timeMaxISO = new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString();
-            idsToFetchDetails = resourceCalendarItems.map(item => item.id);
-        } else {
-            if (!currentSelectedRoomId) { showError("会議室が選択されていません。"); showLoading(false); return; }
-            const weekEnd = new Date(currentWeekStartDate); weekEnd.setDate(currentWeekStartDate.getDate() + 6);
-            timeMinISO = new Date(new Date(currentWeekStartDate).setHours(0, 0, 0, 0)).toISOString();
-            timeMaxISO = new Date(weekEnd.setHours(23, 59, 59, 999)).toISOString();
-            idsToFetchDetails = [currentSelectedRoomId];
-        }
+        const timeMinISO = new Date(new Date(selectedDate).setHours(0, 0, 0, 0)).toISOString();
+        const timeMaxISO = new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString();
+        const idsToFetchDetails = resourceCalendarItems.map(item => item.id);
+
         if (idsToFetchDetails.length === 0) { showError("取得対象のリソースがありません。"); showLoading(false); return; }
 
         const allCalendarData = {};
@@ -168,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             showLoading(false);
-            if (currentView === 'dailyMatrix') renderDailyMatrixView(allCalendarData); else renderWeeklyRoomView(allCalendarData);
+            renderDailyMatrixView(allCalendarData);
         } catch (err) {
             showLoading(false); console.error("A critical error occurred: ", err); showError(`重大なエラーが発生しました: ${err.message || JSON.stringify(err)}`);
         }
@@ -221,11 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
                            const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
+                           tdHourStatus.textContent = overlappingEvent.summary;
                            const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
-                           tdHourStatus.textContent = `${eventTime}\n${overlappingEvent.summary}`;
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
-                           tdHourStatus.classList.add('matrix-cell-busy');
+                           tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
                            m += timeSlotInterval * (colspanCount - 1);
                         }
                     } else {
@@ -238,72 +217,22 @@ document.addEventListener('DOMContentLoaded', () => {
         dataDisplayArea.appendChild(table);
     }
     
-    function renderWeeklyRoomView(calendarsEventData) {
-        dataDisplayArea.innerHTML = '';
-        const roomData = calendarsEventData[currentSelectedRoomId];
-        const room = resourceCalendarItems.find(r => r.id === currentSelectedRoomId);
-        
-        if (!room) { showError("選択された会議室の情報が見つかりません。"); return; }
-        const roomHeader = document.createElement('h3');
-        roomHeader.textContent = `${room.name} の週間予定 (${formatDate(currentWeekStartDate)} - ${formatDate(new Date(new Date(currentWeekStartDate).setDate(currentWeekStartDate.getDate() + 6)))})`;
-        dataDisplayArea.appendChild(roomHeader);
-        const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-        for (let i = 0; i < 7; i++) {
-            const day = new Date(currentWeekStartDate); day.setDate(currentWeekStartDate.getDate() + i);
-            const dayItemDiv = document.createElement('div'); dayItemDiv.className = 'weekly-day-item';
-            const dayHeader = document.createElement('div'); dayHeader.className = 'weekly-day-header';
-            dayHeader.textContent = `${formatDate(day)} (${daysOfWeek[day.getDay()]})`;
-            dayItemDiv.appendChild(dayHeader);
-            const statusDiv = document.createElement('div'); statusDiv.className = 'weekly-status';
-            let dayHasEvents = false;
-            if (roomData && roomData.items && roomData.items.length > 0) {
-                roomData.items.forEach(event => {
-                    const eventStart = new Date(event.start.dateTime || event.start.date);
-                    const eventEnd = new Date(event.end.dateTime || event.end.date);
-                    const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
-                    const dayEnd = new Date(day); dayEnd.setHours(23, 59, 59, 999);
-                    if (eventStart <= dayEnd && eventEnd >= dayStart) {
-                        const busyDetails = document.createElement('div');
-                        busyDetails.className = 'weekly-busy-details';
-                        const eventTime = formatEventTimeForTooltip(event.start, event.end);
-                        let detailTextForDisplay = `${event.summary} (${eventTime})`;
-                        let titleDetails = `会議時間: ${eventTime}\n会議名: ${event.summary}\n作成者: ${event.creator || event.organizer || '(不明)'}\nゲスト: ${event.attendees && event.attendees.length > 0 ? event.attendees.join(', ') : "なし"}`;
-                        busyDetails.textContent = detailTextForDisplay; 
-                        busyDetails.title = titleDetails; 
-                        statusDiv.appendChild(busyDetails);
-                        dayHasEvents = true;
-                    }
-                });
-            }
-            if (!dayHasEvents) {
-                statusDiv.textContent = '予定なし';
-                statusDiv.classList.add('available');
-            }
-            dayItemDiv.appendChild(statusDiv);
-            dataDisplayArea.appendChild(dayItemDiv);
-        }
-    }
-
-
     // --- UI Control Logic ---
-    function handleViewChange(event) { currentView = event.target.value; updateViewControls(); if (gapi.client.getToken()) fetchData(); }
-    function updateViewControls() { dailyControlsDiv.style.display = currentView === 'dailyMatrix' ? 'block' : 'none'; weeklyControlsDiv.style.display = currentView === 'weeklyRoom' ? 'block' : 'none'; }
-    function navigateDay(offset) { selectedDate.setDate(selectedDate.getDate() + offset); dailyDatePicker.valueAsDate = selectedDate; if (gapi.client.getToken()) fetchData(); }
-    function navigateWeek(offset) { currentWeekStartDate.setDate(currentWeekStartDate.getDate() + (offset * 7)); updateWeekDisplay(); if (gapi.client.getToken()) fetchData(); }
-    function updateWeekDisplay() { const e = new Date(currentWeekStartDate); e.setDate(currentWeekStartDate.getDate() + 6); weekDisplaySpan.textContent = `${formatDate(currentWeekStartDate)} - ${formatDate(e)}`; }
+    function navigateDay(offset) {
+        selectedDate.setDate(selectedDate.getDate() + offset);
+        dailyDatePicker.valueAsDate = selectedDate;
+        if (gapi.client.getToken()) fetchData();
+    }
 
     // --- App Initialization ---
     (function initializeApp() {
         if (resourceCalendarItems.length === 0) { showError("確認するリソースカレンダーが設定されていません。"); return; }
-        resourceCalendarItems.forEach(item => { const option = document.createElement('option'); option.value = item.id; option.textContent = item.name; roomSelector.appendChild(option); });
-        if (currentSelectedRoomId) roomSelector.value = currentSelectedRoomId;
-        dailyDatePicker.valueAsDate = selectedDate; updateWeekDisplay(); updateViewControls();
-        viewSelectorRadios.forEach(radio => radio.addEventListener('change', handleViewChange));
+        dailyDatePicker.valueAsDate = selectedDate;
         dailyDatePicker.addEventListener('change', () => { selectedDate = dailyDatePicker.valueAsDate; if (gapi.client.getToken()) fetchData(); });
-        prevDayBtn.addEventListener('click', () => navigateDay(-1)); nextDayBtn.addEventListener('click', () => navigateDay(1));
-        roomSelector.addEventListener('change', () => { currentSelectedRoomId = roomSelector.value; if (gapi.client.getToken()) fetchData(); });
-        prevWeekBtn.addEventListener('click', () => navigateWeek(-1)); nextWeekBtn.addEventListener('click', () => navigateWeek(1));
-        document.addEventListener('gapiReady', trySilentSignIn); document.addEventListener('gisReady', trySilentSignIn);
-        trySilentSignIn(); // In case libraries are already loaded
+        prevDayBtn.addEventListener('click', () => navigateDay(-1));
+        nextDayBtn.addEventListener('click', () => navigateDay(1));
+        document.addEventListener('gapiReady', trySilentSignIn);
+        document.addEventListener('gisReady', trySilentSignIn);
+        trySilentSignIn();
     })();
 });
