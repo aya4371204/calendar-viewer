@@ -19,25 +19,16 @@
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; }
         #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
         #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
-        #dailyMatrixTable tbody td:not(:first-child) { width: 70px; }
-        .matrix-cell-busy { background-color: #fadbd8; cursor: help; }
+        #dailyMatrixTable tbody td:not(:first-child) { width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
+        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; }
+        .matrix-cell-busy.event-start { border-left: 3px solid #e74c3c; /* ★会議開始のインジケーターの色を修正 */ }
         .matrix-cell-available { background-color: #d5f5e3; }
-        #dailyMatrixTable tr.car-row td:first-child { background-color: #e3f2fd; color: #0d47a1; }
-        #dailyMatrixTable tr.group-separator { border-top: 2px solid #666; }
-        
-        /* ★★★ 会議詳細表示用のスタイルを追加 ★★★ */
-        .event-details {
-            display: inline-block;
-            max-width: 98%;
-            border: 1px solid #555; /* 暗めの線 */
-            border-radius: 4px; /* 角を丸く */
-            background-color: #fff;
-            padding: 2px 5px;
-            box-sizing: border-box;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            text-align: left;
+        #dailyMatrixTable tr.car-row td:first-child {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        #dailyMatrixTable tr.car-row {
+            border-top: 2px solid #666; 
         }
     </style>
 </head>
