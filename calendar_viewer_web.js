@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "TQ棟１F 南側", id: "c_1880t51gi8ei6hufjuapnk2s5a7ns@resource.calendar.google.com" },
         { name: "TQ棟１F 北側", id: "c_18805c2gtqlrmgamn400g2mfl8gp0@resource.calendar.google.com" },
         { name: "A棟包装会議室", id: "c_1884rmjrs0j4kio2kcj3s7ae7aki2@resource.calendar.google.com" },
-        { name: "ノア", id: "c_188610h41pnu2jrcgtt1daki34ccq@resource.calendar.google.com" },
-        { name: "アクア", id: "c_1882goec90jfojkigr38jcc72sadu@resource.calendar.google.com" }
+        { name: "社用車)ノア", id: "c_188610h41pnu2jrcgtt1daki34ccq@resource.calendar.google.com" },
+        { name: "社用車)アクア", id: "c_1882goec90jfojkigr38jcc72sadu@resource.calendar.google.com" }
     ];
 
     // --- State Variables ---
