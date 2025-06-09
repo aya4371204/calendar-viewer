@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
-    function formatEventTimeForTooltip(eventStart, eventEnd) {
-        const options = { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' };
+    function formatEventTimeForDisplay(eventStart, eventEnd) {
+        const options = { hour: '2-digit', minute: '2-digit' };
         const startTime = new Date(eventStart.dateTime || eventStart.date).toLocaleTimeString('ja-JP', options);
         const endTime = new Date(eventEnd.dateTime || eventEnd.date).toLocaleTimeString('ja-JP', options);
         return `${startTime}～${endTime}`;
@@ -200,9 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
                            const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
-                           tdHourStatus.textContent = overlappingEvent.summary;
-                           const eventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
-                           let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
+                           const eventTime = formatEventTimeForDisplay(overlappingEvent.start, overlappingEvent.end);
+                           tdHourStatus.textContent = `> ${eventTime} ${overlappingEvent.summary}`;
+                           const fullEventTime = formatEventTimeForTooltip(overlappingEvent.start, overlappingEvent.end);
+                           let titleDetails = `会議時間: ${fullEventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
                            m += timeSlotInterval * (colspanCount - 1);
