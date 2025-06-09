@@ -171,8 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         const tbody = table.createTBody();
-        resourceCalendarItems.forEach(room => {
+        resourceCalendarItems.forEach((room, index) => { // ★ index を取得
             const roomRow = tbody.insertRow();
+            
+            // ★★★ 修正箇所: 最初の社用車の行に区切り線用のクラスを追加 ★★★
+            if (index > 0 && room.type === 'car' && resourceCalendarItems[index - 1].type === 'room') {
+                roomRow.classList.add('group-separator');
+            }
+
             if (room.type === 'car') {
                 roomRow.classList.add('car-row');
             }
