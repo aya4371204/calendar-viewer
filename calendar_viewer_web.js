@@ -160,15 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const calendarId = idsToFetchDetails[index];
                 if (response.status === 'fulfilled' && response.value.result) {
                      allCalendarData[calendarId] = {
-                        items: response.value.result.items ? response.value.result.items.map(event => ({ 
-                            id: event.id, 
-                            summary: event.summary || '(タイトルなし)', 
-                            start: event.start, 
-                            end: event.end, 
-                            creator: event.creator ? (event.creator.displayName || event.creator.email) : '(作成者不明)',
-                            organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', 
-                            attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] 
-                        })) : []
+                        items: response.value.result.items ? response.value.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, creator: event.creator ? (event.creator.displayName || event.creator.email) : '(作成者不明)', organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] })) : []
                     };
                 } else {
                     console.error(`Error fetching events for ${calendarId}:`, response.reason || response.value);
