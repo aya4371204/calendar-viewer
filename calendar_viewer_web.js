@@ -50,16 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "J会議室-1", id: "qualitech-pharma.co.jp_1884fiuigavrkglnjs1djjhgku6im6gb6opj8dhg6gq30cpo70@resource.calendar.google.com", type: "room" },
         { name: "J会議室-2", id: "c_188946m97jurmjcln23drb67jt08c@resource.calendar.google.com", type: "room" },
         { name: "J会議室-3", id: "c_188ct4ddraj2sih1l1p8bki4kquua@resource.calendar.google.com", type: "room" },
-        { name: "C会議室-1", id: "c_1886tb6nndrgih6fntrba28bbqg3c@resource.calendar.google.com", type: "room" },
-        { name: "C会議室-2", id: "c_188e1galv71cqjldlqmcqb9bh13v0@resource.calendar.google.com", type: "room" },
         { name: "J応接室-1", id: "c_188dv27enmm18gm0l374n8dsp7736@resource.calendar.google.com", type: "room" },
         { name: "J応接室-2", id: "c_1883dlc3656j8iqdhu538n2bjtrug@resource.calendar.google.com", type: "room" },
+        { name: "C会議室-1", id: "c_1886tb6nndrgih6fntrba28bbqg3c@resource.calendar.google.com", type: "room" },
+        { name: "C会議室-2", id: "c_188e1galv71cqjldlqmcqb9bh13v0@resource.calendar.google.com", type: "room" },
+        { name: "KUBOMI", id: "c_1884ppicc7llijpbn2i563577na98@resource.calendar.google.com", type: "room" },
+        { name: "J応接室-1", id: "c_188dv27enmm18gm0l374n8dsp7736@resource.calendar.google.com", type: "room" }, // 重複
+        { name: "J応接室-2", id: "c_1883dlc3656j8iqdhu538n2bjtrug@resource.calendar.google.com", type: "room" }, // 重複
         { name: "TQ会議室-1", id: "c_1889knnqihfeegnuk0difag0k4mva@resource.calendar.google.com", type: "room" },
         { name: "TQ会議室-2", id: "c_188dorsdoishij18ko42f4rmnip9o@resource.calendar.google.com", type: "room" },
-        { name: "KUBOMI", id: "c_1884ppicc7llijpbn2i563577na98@resource.calendar.google.com", type: "room" },
-        { name: "A棟包装会議室", id: "c_1884rmjrs0j4kio2kcj3s7ae7aki2@resource.calendar.google.com", type: "room" },
         { name: "TQ棟１F 南側", id: "c_1880t51gi8ei6hufjuapnk2s5a7ns@resource.calendar.google.com", type: "room" },
         { name: "TQ棟１F 北側", id: "c_18805c2gtqlrmgamn400g2mfl8gp0@resource.calendar.google.com", type: "room" },
+        { name: "A棟包装会議室", id: "c_1884rmjrs0j4kio2kcj3s7ae7aki2@resource.calendar.google.com", type: "room" },
         { name: "ノア", id: "c_188610h41pnu2jrcgtt1daki34ccq@resource.calendar.google.com", type: "car" },
         { name: "アクア", id: "c_1882goec90jfojkigr38jcc72sadu@resource.calendar.google.com", type: "car" }
     ];
