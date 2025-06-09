@@ -171,14 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         const tbody = table.createTBody();
-        resourceCalendarItems.forEach((room, index) => { // ★ index を取得
+        resourceCalendarItems.forEach((room, index) => {
             const roomRow = tbody.insertRow();
-            
-            // ★★★ 修正箇所: 最初の社用車の行に区切り線用のクラスを追加 ★★★
             if (index > 0 && room.type === 'car' && resourceCalendarItems[index - 1].type === 'room') {
                 roomRow.classList.add('group-separator');
             }
-
             if (room.type === 'car') {
                 roomRow.classList.add('car-row');
             }
@@ -209,8 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
                            const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
+                           
+                           // ★★★ 修正箇所: spanで囲んでCSSでスタイリング ★★★
+                           const eventSpan = document.createElement('span');
+                           eventSpan.classList.add('event-details');
+                           eventSpan.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
+                           tdHourStatus.appendChild(eventSpan);
+                           
                            const eventTime = formatEventTime(overlappingEvent.start, overlappingEvent.end);
-                           tdHourStatus.textContent = `> ${eventTime} ${overlappingEvent.summary}`;
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
