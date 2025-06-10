@@ -162,18 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const thRoomHeader = document.createElement('th');
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
-        const startHour = 8; const endHour = 19; 
-        const timeSlotInterval = 15; // ★15分単位に変更
-        const slotsPerHour = 60 / timeSlotInterval;
-
-        // ★★★ 時間ヘッダーを1時間ごとに生成 ★★★
+        const startHour = 8; const endHour = 19; const timeSlotInterval = 30;
         for (let h = startHour; h < endHour; h++) {
-            const thHour = document.createElement('th');
-            thHour.colSpan = slotsPerHour; // 1時間分(4スロット)を結合
-            thHour.textContent = `${String(h).padStart(2, '0')}:00`;
-            headerRow.appendChild(thHour);
+            for (let m = 0; m < 60; m += timeSlotInterval) {
+                const thHour = document.createElement('th');
+                thHour.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                headerRow.appendChild(thHour);
+            }
         }
-        
         const tbody = table.createTBody();
         resourceCalendarItems.forEach((room, index) => {
             const roomRow = tbody.insertRow();
@@ -187,9 +183,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-
             for (let h = startHour; h < endHour; h++) {
-                for (let m = 0; m < 60; m += timeSlotInterval) { // ★15分ループ
+                for (let m = 0; m < 60; m += timeSlotInterval) {
                     const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
                     const slotEndTime = new Date(selectedDate); slotEndTime.setHours(h, m + timeSlotInterval, 0, 0);
                     let overlappingEvent = null;
@@ -216,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
-                           m += timeSlotInterval * (colspanCount - 1); // 分のループを進める
+                           m += timeSlotInterval * (colspanCount - 1);
                         }
                     } else {
                         const tdHourStatus = roomRow.insertCell();
