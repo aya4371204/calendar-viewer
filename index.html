@@ -14,14 +14,15 @@
         #controls-wrapper label { margin-right: 10px; }
         #controls-wrapper input, #controls-wrapper button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #dataDisplayArea { overflow: auto; width: 100%; max-height: 85vh; margin-top: 15px; }
-        #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; /* ★固定レイアウトに戻す */ }
+        #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
         #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 8px; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; }
-        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; /* ★会議室名の列幅を固定 */ text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
-        #dailyMatrixTable tbody td:first-child { width: 120px; /* ★会議室名の列幅を固定 */ white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; /* ★省略表示のために必須 */ text-overflow: ellipsis; /* ★省略表示のために必須 */ position: sticky; left: 0; z-index: 2; }
-        #dailyMatrixTable tbody td:not(:first-child) { width: 40px; /* ★時間軸の列幅を固定 */ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
+        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
+        #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
+        #dailyMatrixTable tbody td:not(:first-child) { width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
         .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: help; text-align: left; }
-        .matrix-cell-busy.event-start { border-left: 3px solid #e74c3c; }
+        /* ★★★ 修正箇所: 罫線を太く、濃い色に変更 ★★★ */
+        .matrix-cell-busy.event-start { border-left: 4px solid #c0392b; }
         .matrix-cell-available { background-color: #d5f5e3; }
         #dailyMatrixTable tr.car-row td:first-child {
             background-color: #e3f2fd;
