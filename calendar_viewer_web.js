@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingStartTimeSelect = document.getElementById('bookingStartTime');
     const bookingEndTimeSelect = document.getElementById('bookingEndTime');
     const eventTitleInput = document.getElementById('eventTitle');
-    const targetCalendarSelect = document.getElementById('targetCalendarSelect');
+    const calendarListContainer = document.getElementById('calendarListContainer');
     const saveBookingBtn = document.getElementById('saveBookingBtn');
     const cancelBookingBtn = document.getElementById('cancelBookingBtn');
     
@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
     function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
     function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
+    
     function formatTime(date) {
         const h = String(date.getHours()).padStart(2, '0');
         const m = String(date.getMinutes()).padStart(2, '0');
@@ -123,14 +124,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await gapi.client.calendar.calendarList.list();
             const calendars = response.result.items;
-            targetCalendarSelect.innerHTML = '';
+            calendarListContainer.innerHTML = '';
             calendars.forEach((calendar) => {
                 if (calendar.accessRole === 'owner' || calendar.accessRole === 'writer') {
-                    const option = document.createElement('option');
-                    option.value = calendar.id;
-                    option.textContent = calendar.summary;
-                    if (calendar.primary) { option.selected = true; }
-                    targetCalendarSelect.appendChild(option);
+                    const div = document.createElement('div');
+                    const radio = document.createElement('input');
+                    radio.type = 'radio'; radio.name = 'targetCalendar'; radio.id = 'cal-' + calendar.id; radio.value = calendar.id;
+                    if (calendar.primary) { radio.checked = true; }
+                    const label = document.createElement('label');
+                    label.htmlFor = 'cal-' + calendar.id; label.textContent = ` ${calendar.summary}`;
+                    div.appendChild(radio); div.appendChild(label);
+                    calendarListContainer.appendChild(div);
                 }
             });
         } catch (err) { console.error("Error fetching calendar list", err); }
@@ -195,8 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function createCalendarEvent() {
         const summary = eventTitleInput.value;
         if (!summary) { alert('会議名を入力してください。'); return; }
-        const targetCalendarId = targetCalendarSelect.value;
-        if (!targetCalendarId) { alert('作成先のカレンダーを選択してください。'); return; }
+        const selectedCalendarRadio = document.querySelector('input[name="targetCalendar"]:checked');
+        if (!selectedCalendarRadio) { alert('作成先のカレンダーを選択してください。'); return; }
+        const targetCalendarId = selectedCalendarRadio.value;
         const eventResource = {
             'summary': summary,
             'start': { 'dateTime': bookingStartTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
