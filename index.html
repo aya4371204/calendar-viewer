@@ -21,7 +21,7 @@
         #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
         #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
         #dailyMatrixTable tbody td:not(:first-child), #dailyMatrixTable thead th:not(:first-child) { width: 40px; }
-        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: not-allowed; text-align: left; /* ★左寄せに変更 */ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 5px;}
+        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: not-allowed; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 5px;}
         .matrix-cell-busy.event-start { border-left: 3px solid #e74c3c; }
         .matrix-cell-available { background-color: #d5f5e3; cursor: pointer; }
         .matrix-cell-available:hover { background-color: #b7e4c7; }
@@ -35,6 +35,10 @@
         .modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
         .modal-body input, .modal-body textarea, .modal-body select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
         .time-select-group { display: flex; align-items: center; gap: 10px; }
+        #calendarListContainer { max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; }
+        #calendarListContainer div { display: flex; align-items: center; margin-bottom: 5px; } 
+        #calendarListContainer label { font-weight: normal; margin-left: 8px; cursor: pointer; }
+        #calendarListContainer input[type="radio"] { margin: 0; cursor: pointer; flex-shrink: 0; }
         .modal-footer { text-align: right; margin-top: 20px; }
         .modal-footer button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; margin-left: 10px; }
         #saveBookingBtn { background-color: #28a745; color: white; }
@@ -80,8 +84,8 @@
                 <input type="text" id="eventTitle" placeholder="会議名を入力">
             </div>
             <div class="form-group">
-                <label for="targetCalendarSelect">作成先カレンダー:</label>
-                <select id="targetCalendarSelect"></select>
+                <label>作成先カレンダー:</label>
+                <div id="calendarListContainer"></div>
             </div>
         </div>
         <div class="modal-footer">
