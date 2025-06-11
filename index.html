@@ -15,11 +15,12 @@
         #date-controls label { margin-right: 10px; }
         #date-controls input, #date-controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #dataDisplayArea { overflow: auto; width: 100%; max-height: 85vh; margin-top: 15px; }
-        #dailyMatrixTable { border-collapse: collapse; table-layout: fixed; }
+        #dailyMatrixTable { width: auto; border-collapse: collapse; table-layout: fixed; }
         #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
-        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
-        #dailyMatrixTable tbody td:first-child { white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
+        #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
+        #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
+        #dailyMatrixTable tbody td:not(:first-child), #dailyMatrixTable thead th:not(:first-child) { width: 40px; }
         .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: not-allowed; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 5px;}
         .matrix-cell-busy.event-start { border-left: 3px solid #e74c3c; }
         .matrix-cell-available { background-color: #d5f5e3; cursor: pointer; }
