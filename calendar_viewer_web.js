@@ -81,14 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
-    function formatEventTime(eventStart, eventEnd) {
-        const options = { hour: '2-digit', minute: '2-digit' };
-        const startTime = new Date(eventStart.dateTime || eventStart.date).toLocaleTimeString('ja-JP', options);
-        const endTime = new Date(eventEnd.dateTime || eventEnd.date).toLocaleTimeString('ja-JP', options);
-        return `${startTime}～${endTime}`;
+    function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
+    function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
+    
+    // ★★★ 修正箇所: formatTime関数を定義 ★★★
+    function formatTime(date) {
+        const h = String(date.getHours()).padStart(2, '0');
+        const m = String(date.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
     }
 
-    // --- Auth Logic ---
+    // --- GAPI/GIS readiness check and Auth ---
     function handleAuthResponse(resp) {
         if (resp.error !== undefined) {
             if (resp.error === 'popup_closed' || resp.error === 'user_cancel' || resp.error === 'immediate_failed') { signInButton.style.display = 'block'; } else { showError('認証中にエラーが発生しました: ' + JSON.stringify(resp)); signInButton.style.display = 'block'; }
