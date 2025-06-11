@@ -20,9 +20,9 @@
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
         #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
         #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
-        #dailyMatrixTable tbody td:not(:first-child) { width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
+        #dailyMatrixTable tbody td:not(:first-child) { width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
         .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: not-allowed; text-align: left; }
-        .matrix-cell-busy.event-start { border-left: 3px solid #c0392b; }
+        .matrix-cell-busy.event-start { border-left: 4px solid #c0392b; }
         .matrix-cell-available { background-color: #d5f5e3; cursor: pointer; }
         .matrix-cell-available:hover { background-color: #b7e4c7; }
         #dailyMatrixTable tr.car-row td:first-child { background-color: #e3f2fd; color: #0d47a1; }
@@ -33,7 +33,10 @@
         .modal-header h2 { margin: 0; font-size: 20px; }
         .modal-body .form-group { margin-bottom: 15px; }
         .modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .modal-body input, .modal-body textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .modal-body input, .modal-body textarea, .modal-body select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .time-select-group { display: flex; align-items: center; gap: 10px; }
+        #calendarListContainer { max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; }
+        #calendarListContainer label { font-weight: normal; margin-left: 5px; }
         .modal-footer { text-align: right; margin-top: 20px; }
         .modal-footer button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; margin-left: 10px; }
         #saveBookingBtn { background-color: #28a745; color: white; }
@@ -68,15 +71,19 @@
             </div>
             <div class="form-group">
                 <label>時間:</label>
-                <p id="bookingTime"></p>
+                <div class="time-select-group">
+                    <select id="bookingStartTime"></select>
+                    <span>～</span>
+                    <select id="bookingEndTime"></select>
+                </div>
             </div>
             <div class="form-group">
                 <label for="eventTitle">会議名:</label>
                 <input type="text" id="eventTitle" placeholder="会議名を入力">
             </div>
             <div class="form-group">
-                <label for="eventGuests">ゲスト (カンマ区切りでメールアドレスを入力):</label>
-                <textarea id="eventGuests" rows="3" placeholder="guest1@example.com, guest2@example.com"></textarea>
+                <label>作成先カレンダー:</label>
+                <div id="calendarListContainer"></div>
             </div>
         </div>
         <div class="modal-footer">
