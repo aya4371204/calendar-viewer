@@ -223,10 +223,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
         const slotsPerHour = 60 / timeSlotInterval;
         for (let h = startHour; h < endHour; h++) {
-            const thHour = document.createElement('th');
-            thHour.colSpan = slotsPerHour;
-            thHour.textContent = `${String(h).padStart(2, '0')}:00`;
-            headerRow.appendChild(thHour);
+            for (let m = 0; m < 60; m += timeSlotInterval) {
+                const thHour = document.createElement('th');
+                if (m === 0) {
+                    thHour.textContent = `${String(h).padStart(2, '0')}:00`;
+                    thHour.style.borderLeft = '2px solid #bbb';
+                }
+                headerRow.appendChild(thHour);
+            }
         }
         
         const tbody = table.createTBody();
@@ -238,11 +242,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-            let currentColumn = 0;
-            while (currentColumn < (endHour - startHour) * slotsPerHour) {
-                const h = startHour + Math.floor(currentColumn / slotsPerHour);
-                const m = (currentColumn % slotsPerHour) * timeSlotInterval;
-                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
+            let m = 0;
+            while (m < (endHour - startHour) * slotsPerHour) {
+                const currentHour = startHour + Math.floor(m / slotsPerHour);
+                const currentMinute = (m % slotsPerHour) * timeSlotInterval;
+                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(currentHour, currentMinute, 0, 0);
                 const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
                 let overlappingEvent = null;
                 if (roomData && roomData.items) {
@@ -267,15 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
-                       currentColumn += colspanCount;
+                       m += colspanCount;
                     } else {
-                        currentColumn++;
+                        m++;
                     }
                 } else {
                     const tdHourStatus = roomRow.insertCell();
                     tdHourStatus.classList.add('matrix-cell-available');
                     tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
-                    currentColumn++;
+                    m++;
                 }
             }
         });
