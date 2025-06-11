@@ -6,7 +6,7 @@ let gisInited = false;
 // ★★★ GCPで作成したウェブアプリケーション用の情報を設定 ★★★
 const API_KEY = 'AIzaSyCpRjx_lkdpcp-eePb-_psrh5MUB-T06aA';
 const CLIENT_ID = '976002357617-j8i08ahpphr1frt1ko7tltvfbp847alk.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.events'; // ★★★ 権限を書き込み可能に変更 ★★★
 
 function gapiLoaded() {
     gapi.load('client', initializeGapiClient);
@@ -44,6 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyDatePicker = document.getElementById('dailyDatePicker');
     const prevDayBtn = document.getElementById('prevDayBtn');
     const nextDayBtn = document.getElementById('nextDayBtn');
+    
+    // ★★★ 予約モーダル用のDOM要素を追加 ★★★
+    const bookingModalBackdrop = document.getElementById('bookingModalBackdrop');
+    const bookingModal = document.getElementById('bookingModal');
+    const bookingResourceName = document.getElementById('bookingResourceName');
+    const bookingTime = document.getElementById('bookingTime');
+    const eventTitleInput = document.getElementById('eventTitle');
+    const eventGuestsInput = document.getElementById('eventGuests');
+    const saveBookingBtn = document.getElementById('saveBookingBtn');
+    const cancelBookingBtn = document.getElementById('cancelBookingBtn');
+    
+    let bookingData = {}; // 予約情報を一時的に保持
 
     // --- Resource Data ---
     const resourceCalendarItems = [
@@ -77,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${startTime}～${endTime}`;
     }
 
-    // --- GAPI/GIS readiness check and Auth ---
+    // --- Auth Logic ---
     function handleAuthResponse(resp) {
         if (resp.error !== undefined) {
             if (resp.error === 'popup_closed' || resp.error === 'user_cancel' || resp.error === 'immediate_failed') {
@@ -162,14 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const thRoomHeader = document.createElement('th');
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
-        const startHour = 8; const endHour = 19; const timeSlotInterval = 30;
+        const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
         for (let h = startHour; h < endHour; h++) {
-            for (let m = 0; m < 60; m += timeSlotInterval) {
-                const thHour = document.createElement('th');
-                thHour.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                headerRow.appendChild(thHour);
-            }
+            const thHour = document.createElement('th');
+            thHour.colSpan = 60 / timeSlotInterval; 
+            thHour.textContent = `${String(h).padStart(2, '0')}:00`;
+            headerRow.appendChild(thHour);
         }
+        
         const tbody = table.createTBody();
         resourceCalendarItems.forEach((room, index) => {
             const roomRow = tbody.insertRow();
@@ -206,8 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
                            const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                            const tdHourStatus = roomRow.insertCell();
                            tdHourStatus.colSpan = colspanCount;
+                           tdHourStatus.textContent = overlappingEvent.summary;
                            const eventTime = formatEventTime(overlappingEvent.start, overlappingEvent.end);
-                           tdHourStatus.textContent = `> ${eventTime} ${overlappingEvent.summary}`;
                            let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                            tdHourStatus.title = titleDetails;
                            tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
@@ -216,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         const tdHourStatus = roomRow.insertCell();
                         tdHourStatus.classList.add('matrix-cell-available');
+                        tdHourStatus.onclick = () => openBookingModal(room, slotStartTime); // ★空きセルにクリックイベントを追加
                     }
                 }
             }
@@ -223,6 +236,80 @@ document.addEventListener('DOMContentLoaded', () => {
         dataDisplayArea.appendChild(table);
     }
     
+    // ★★★ 予約モーダルを開く関数 ★★★
+    function openBookingModal(room, startTime) {
+        const endTime = new Date(startTime.getTime() + 30 * 60000); // デフォルトで30分の予定
+        bookingData = {
+            room: room,
+            start: startTime,
+            end: endTime
+        };
+        
+        bookingResourceName.textContent = room.name;
+        bookingTime.textContent = formatEventTime({dateTime: startTime.toISOString()}, {dateTime: endTime.toISOString()});
+        eventTitleInput.value = '';
+        eventGuestsInput.value = '';
+
+        bookingModal.style.display = 'block';
+        bookingModalBackdrop.style.display = 'block';
+    }
+    
+    // ★★★ 予約モーダルを閉じる関数 ★★★
+    function closeBookingModal() {
+        bookingModal.style.display = 'none';
+        bookingModalBackdrop.style.display = 'none';
+    }
+
+    // ★★★ 予約を作成する関数 ★★★
+    async function createCalendarEvent() {
+        const summary = eventTitleInput.value;
+        if (!summary) {
+            alert('会議名を入力してください。');
+            return;
+        }
+
+        const guests = eventGuestsInput.value.split(',')
+            .map(email => email.trim())
+            .filter(email => email) // 空の文字列を除外
+            .map(email => ({ 'email': email }));
+        
+        // 会議室自体も参加者として追加
+        guests.push({ 'email': bookingData.room.id });
+
+        const eventResource = {
+            'summary': summary,
+            'start': {
+                'dateTime': bookingData.start.toISOString(),
+                'timeZone': 'Asia/Tokyo'
+            },
+            'end': {
+                'dateTime': bookingData.end.toISOString(),
+                'timeZone': 'Asia/Tokyo'
+            },
+            'attendees': guests
+        };
+
+        try {
+            // ユーザーのプライマリカレンダーに予定を作成
+            await gapi.client.calendar.events.insert({
+                'calendarId': 'primary',
+                'resource': eventResource
+            });
+            alert('予約が作成されました。');
+            closeBookingModal();
+            fetchData(); // 予約後にマトリクスを更新
+        } catch (err) {
+            console.error('Error creating event:', err);
+            alert(`予約の作成に失敗しました: ${err.result.error.message}`);
+        }
+    }
+
+    // ★★★ モーダルのイベントリスナーを追加 ★★★
+    cancelBookingBtn.onclick = closeBookingModal;
+    bookingModalBackdrop.onclick = closeBookingModal;
+    saveBookingBtn.onclick = createCalendarEvent;
+
+
     // --- UI Control Logic ---
     function navigateDay(offset) {
         selectedDate.setDate(selectedDate.getDate() + offset);
