@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingStartTimeSelect = document.getElementById('bookingStartTime');
     const bookingEndTimeSelect = document.getElementById('bookingEndTime');
     const eventTitleInput = document.getElementById('eventTitle');
-    const targetCalendarSelect = document.getElementById('targetCalendarSelect'); // ★修正
+    const calendarListContainer = document.getElementById('calendarListContainer');
     const saveBookingBtn = document.getElementById('saveBookingBtn');
     const cancelBookingBtn = document.getElementById('cancelBookingBtn');
     
@@ -121,14 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await gapi.client.calendar.calendarList.list();
             const calendars = response.result.items;
-            targetCalendarSelect.innerHTML = ''; // ★修正
+            calendarListContainer.innerHTML = '';
             calendars.forEach((calendar) => {
                 if (calendar.accessRole === 'owner' || calendar.accessRole === 'writer') {
-                    const option = document.createElement('option'); // ★修正
-                    option.value = calendar.id; // ★修正
-                    option.textContent = calendar.summary; // ★修正
-                    if (calendar.primary) { option.selected = true; } // ★修正
-                    targetCalendarSelect.appendChild(option); // ★修正
+                    const div = document.createElement('div');
+                    const radio = document.createElement('input');
+                    radio.type = 'radio'; radio.name = 'targetCalendar'; radio.id = 'cal-' + calendar.id; radio.value = calendar.id;
+                    if (calendar.primary) { radio.checked = true; }
+                    const label = document.createElement('label');
+                    label.htmlFor = 'cal-' + calendar.id; label.textContent = ` ${calendar.summary}`;
+                    div.appendChild(radio); div.appendChild(label);
+                    calendarListContainer.appendChild(div);
                 }
             });
         } catch (err) { console.error("Error fetching calendar list", err); }
@@ -193,8 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function createCalendarEvent() {
         const summary = eventTitleInput.value;
         if (!summary) { alert('会議名を入力してください。'); return; }
-        const targetCalendarId = targetCalendarSelect.value; // ★修正
-        if (!targetCalendarId) { alert('作成先のカレンダーを選択してください。'); return; }
+        const selectedCalendarRadio = document.querySelector('input[name="targetCalendar"]:checked');
+        if (!selectedCalendarRadio) { alert('作成先のカレンダーを選択してください。'); return; }
+        const targetCalendarId = selectedCalendarRadio.value;
         const eventResource = {
             'summary': summary,
             'start': { 'dateTime': bookingStartTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
@@ -212,7 +216,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Rendering Logic ---
     function renderDailyMatrixView(calendarsEventData) {
-        // ... (renderDailyMatrixView のロジックは変更なし) ...
+        dataDisplayArea.innerHTML = '';
+        const table = document.createElement('table'); table.id = 'dailyMatrixTable';
+        const thead = table.createTHead();
+        const headerRow = thead.insertRow();
+        const thRoomHeader = document.createElement('th');
+        thRoomHeader.textContent = 'リソース';
+        headerRow.appendChild(thRoomHeader);
+        const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
+        const slotsPerHour = 60 / timeSlotInterval;
+        for (let h = startHour; h < endHour; h++) {
+            const thHour = document.createElement('th');
+            thHour.colSpan = slotsPerHour;
+            thHour.textContent = `${String(h).padStart(2, '0')}:00`;
+            headerRow.appendChild(thHour);
+        }
+        
+        const tbody = table.createTBody();
+        resourceCalendarItems.forEach((room, index) => {
+            const roomRow = tbody.insertRow();
+            if (index > 0 && room.type === 'car' && resourceCalendarItems[index - 1].type === 'room') { roomRow.classList.add('group-separator'); }
+            if (room.type === 'car') { roomRow.classList.add('car-row'); }
+            const tdRoomName = roomRow.insertCell();
+            tdRoomName.textContent = room.name;
+            tdRoomName.title = room.name;
+            const roomData = calendarsEventData[room.id];
+            let currentColumn = 0;
+            while (currentColumn < (endHour - startHour) * slotsPerHour) {
+                const h = startHour + Math.floor(currentColumn / slotsPerHour);
+                const m = (currentColumn % slotsPerHour) * timeSlotInterval;
+                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
+                const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
+                let overlappingEvent = null;
+                if (roomData && roomData.items) {
+                    for (const event of roomData.items) {
+                        const eventStart = new Date(event.start.dateTime || event.start.date);
+                        const eventEnd = new Date(event.end.dateTime || event.end.date);
+                        if (eventStart < slotEndTime && eventEnd > slotStartTime) {
+                            overlappingEvent = event;
+                            break;
+                        }
+                    }
+                }
+                if (overlappingEvent) {
+                    const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
+                    if (eventStart >= slotStartTime && eventStart < slotEndTime) {
+                       const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
+                       const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
+                       const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
+                       const tdHourStatus = roomRow.insertCell();
+                       tdHourStatus.colSpan = colspanCount;
+                       tdHourStatus.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
+                       let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
+                       tdHourStatus.title = titleDetails;
+                       tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
+                       currentColumn += colspanCount;
+                    } else {
+                        currentColumn++;
+                    }
+                } else {
+                    const tdHourStatus = roomRow.insertCell();
+                    tdHourStatus.classList.add('matrix-cell-available');
+                    tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
+                    currentColumn++;
+                }
+            }
+        });
+        dataDisplayArea.appendChild(table);
     }
     
     // --- UI Control Logic ---
