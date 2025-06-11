@@ -81,9 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
-    function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
-    function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
-    
     function formatTime(date) {
         const h = String(date.getHours()).padStart(2, '0');
         const m = String(date.getMinutes()).padStart(2, '0');
@@ -217,12 +214,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDailyMatrixView(calendarsEventData) {
         dataDisplayArea.innerHTML = '';
         const table = document.createElement('table'); table.id = 'dailyMatrixTable';
+
+        // ★★★ 修正箇所: <colgroup> を動的に生成 ★★★
+        const colgroup = document.createElement('colgroup');
+        const firstCol = document.createElement('col');
+        firstCol.style.width = '120px';
+        colgroup.appendChild(firstCol);
+
+        const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
+        const totalSlots = (endHour - startHour) * (60 / timeSlotInterval);
+        for (let i = 0; i < totalSlots; i++) {
+            const col = document.createElement('col');
+            col.style.width = '30px';
+            colgroup.appendChild(col);
+        }
+        table.appendChild(colgroup);
+
         const thead = table.createTHead();
         const headerRow = thead.insertRow();
         const thRoomHeader = document.createElement('th');
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
-        const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
+        
         const slotsPerHour = 60 / timeSlotInterval;
         for (let h = startHour; h < endHour; h++) {
             const thHour = document.createElement('th');
@@ -241,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
             let currentColumn = 0;
-            while (currentColumn < (endHour - startHour) * slotsPerHour) {
+            while (currentColumn < totalSlots) {
                 const h = startHour + Math.floor(currentColumn / slotsPerHour);
                 const m = (currentColumn % slotsPerHour) * timeSlotInterval;
                 const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
