@@ -16,19 +16,17 @@
         #date-controls input, #date-controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #dataDisplayArea { overflow: auto; width: 100%; max-height: 85vh; margin-top: 15px; }
         #dailyMatrixTable { width: auto; border-collapse: collapse; }
-        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 8px; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
+        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
         #dailyMatrixTable thead th { background-color: #e9ecef; font-weight: bold; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
         #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
         #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
-        #dailyMatrixTable tbody td:not(:first-child) { width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
+        #dailyMatrixTable tbody td:not(:first-child) { width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
         .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: not-allowed; text-align: left; }
-        .matrix-cell-busy.event-start { border-left: 4px solid #c0392b; }
+        .matrix-cell-busy.event-start { border-left: 3px solid #c0392b; }
         .matrix-cell-available { background-color: #d5f5e3; cursor: pointer; }
         .matrix-cell-available:hover { background-color: #b7e4c7; }
         #dailyMatrixTable tr.car-row td:first-child { background-color: #e3f2fd; color: #0d47a1; }
         #dailyMatrixTable tr.group-separator { border-top: 2px solid #666; }
-
-        /* ★★★ 予約モーダル用のスタイルを追加 ★★★ */
         .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; }
         .modal-content { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 101; width: 90%; max-width: 500px; }
         .modal-header { padding-bottom: 15px; border-bottom: 1px solid #eee; margin-bottom: 20px; }
@@ -45,7 +43,6 @@
 <body>
     <div id="authControls">
         <button id="signInButton" style="display: none;">Googleでサインイン</button>
-        <button id="signOutButton" style="display: none;">サインアウト</button>
     </div>
     <div id="controls-wrapper" style="display: none;">
         <div id="date-controls">
@@ -59,8 +56,6 @@
     <div id="loading" style="display: none;">読み込み中...</div>
     <div id="error" style="display: none;"></div>
     <div id="dataDisplayArea"></div>
-
-    <!-- ★★★ 予約モーダルのHTMLを追加 ★★★ -->
     <div id="bookingModalBackdrop" class="modal-backdrop"></div>
     <div id="bookingModal" class="modal-content">
         <div class="modal-header">
@@ -89,7 +84,6 @@
             <button id="saveBookingBtn">予約作成</button>
         </div>
     </div>
-
     <script src="calendar_viewer_web.js"></script>
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
     <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
