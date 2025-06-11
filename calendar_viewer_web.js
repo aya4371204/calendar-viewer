@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingStartTimeSelect = document.getElementById('bookingStartTime');
     const bookingEndTimeSelect = document.getElementById('bookingEndTime');
     const eventTitleInput = document.getElementById('eventTitle');
-    const calendarListContainer = document.getElementById('calendarListContainer');
+    const targetCalendarSelect = document.getElementById('targetCalendarSelect');
     const saveBookingBtn = document.getElementById('saveBookingBtn');
     const cancelBookingBtn = document.getElementById('cancelBookingBtn');
     
@@ -121,17 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await gapi.client.calendar.calendarList.list();
             const calendars = response.result.items;
-            calendarListContainer.innerHTML = '';
+            targetCalendarSelect.innerHTML = '';
             calendars.forEach((calendar) => {
                 if (calendar.accessRole === 'owner' || calendar.accessRole === 'writer') {
-                    const div = document.createElement('div');
-                    const radio = document.createElement('input');
-                    radio.type = 'radio'; radio.name = 'targetCalendar'; radio.id = 'cal-' + calendar.id; radio.value = calendar.id;
-                    if (calendar.primary) { radio.checked = true; }
-                    const label = document.createElement('label');
-                    label.htmlFor = 'cal-' + calendar.id; label.textContent = ` ${calendar.summary}`;
-                    div.appendChild(radio); div.appendChild(label);
-                    calendarListContainer.appendChild(div);
+                    const option = document.createElement('option');
+                    option.value = calendar.id;
+                    option.textContent = calendar.summary;
+                    if (calendar.primary) { option.selected = true; }
+                    targetCalendarSelect.appendChild(option);
                 }
             });
         } catch (err) { console.error("Error fetching calendar list", err); }
@@ -196,9 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function createCalendarEvent() {
         const summary = eventTitleInput.value;
         if (!summary) { alert('会議名を入力してください。'); return; }
-        const selectedCalendarRadio = document.querySelector('input[name="targetCalendar"]:checked');
-        if (!selectedCalendarRadio) { alert('作成先のカレンダーを選択してください。'); return; }
-        const targetCalendarId = selectedCalendarRadio.value;
+        const targetCalendarId = targetCalendarSelect.value;
+        if (!targetCalendarId) { alert('作成先のカレンダーを選択してください。'); return; }
         const eventResource = {
             'summary': summary,
             'start': { 'dateTime': bookingStartTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
@@ -241,11 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-            let currentColumn = 0;
-            while (currentColumn < (endHour - startHour) * slotsPerHour) {
-                const h = startHour + Math.floor(currentColumn / slotsPerHour);
-                const m = (currentColumn % slotsPerHour) * timeSlotInterval;
-                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
+            let m = 0;
+            while (m < (endHour - startHour) * slotsPerHour) {
+                const currentHour = startHour + Math.floor(m / slotsPerHour);
+                const currentMinute = (m % slotsPerHour) * timeSlotInterval;
+                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(currentHour, currentMinute, 0, 0);
                 const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
                 let overlappingEvent = null;
                 if (roomData && roomData.items) {
@@ -270,15 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
-                       currentColumn += colspanCount;
+                       m += colspanCount;
                     } else {
-                        currentColumn++;
+                        m++;
                     }
                 } else {
                     const tdHourStatus = roomRow.insertCell();
                     tdHourStatus.classList.add('matrix-cell-available');
                     tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
-                    currentColumn++;
+                    m++;
                 }
             }
         });
