@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bookingEndTimeSelect = document.getElementById('bookingEndTime');
     const eventTitleInput = document.getElementById('eventTitle');
     const targetCalendarSelect = document.getElementById('targetCalendarSelect');
+    
     const saveBookingBtn = document.getElementById('saveBookingBtn');
     const cancelBookingBtn = document.getElementById('cancelBookingBtn');
     
@@ -216,27 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDailyMatrixView(calendarsEventData) {
         dataDisplayArea.innerHTML = '';
         const table = document.createElement('table'); table.id = 'dailyMatrixTable';
-        
-        const colgroup = document.createElement('colgroup');
-        const firstCol = document.createElement('col');
-        firstCol.style.width = '120px';
-        colgroup.appendChild(firstCol);
-
-        const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
-        const totalSlots = (endHour - startHour) * (60 / timeSlotInterval);
-        for (let i = 0; i < totalSlots; i++) {
-            const col = document.createElement('col');
-            col.style.width = '30px';
-            colgroup.appendChild(col);
-        }
-        table.appendChild(colgroup);
-
         const thead = table.createTHead();
         const headerRow = thead.insertRow();
         const thRoomHeader = document.createElement('th');
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
-        
+        const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
         const slotsPerHour = 60 / timeSlotInterval;
         for (let h = startHour; h < endHour; h++) {
             const thHour = document.createElement('th');
@@ -255,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
             let currentColumn = 0;
-            while (currentColumn < totalSlots) {
+            while (currentColumn < (endHour - startHour) * slotsPerHour) {
                 const h = startHour + Math.floor(currentColumn / slotsPerHour);
                 const m = (currentColumn % slotsPerHour) * timeSlotInterval;
                 const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
