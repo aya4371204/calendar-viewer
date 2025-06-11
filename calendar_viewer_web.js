@@ -180,9 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (overlappingEvent) {
                     const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
-                    const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
                     const startSlot = Math.floor((eventStart.getHours() - startHour) * slotsPerHour + eventStart.getMinutes() / timeSlotInterval);
                     if (currentSlot === startSlot) {
+                        const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
                         const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
                         const colspanCount = Math.ceil(durationInMinutes / timeSlotInterval);
                         const tdHourStatus = roomRow.insertCell();
