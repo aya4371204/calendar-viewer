@@ -6,7 +6,7 @@ let gisInited = false;
 // ★★★ GCPで作成したウェブアプリケーション用の情報を設定 ★★★
 const API_KEY = 'AIzaSyCpRjx_lkdpcp-eePb-_psrh5MUB-T06aA';
 const CLIENT_ID = '976002357617-j8i08ahpphr1frt1ko7tltvfbp847alk.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events'; // ★★★ 権限を書き込み可能に変更 ★★★
+const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
 
 function gapiLoaded() {
     gapi.load('client', initializeGapiClient);
@@ -44,8 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyDatePicker = document.getElementById('dailyDatePicker');
     const prevDayBtn = document.getElementById('prevDayBtn');
     const nextDayBtn = document.getElementById('nextDayBtn');
-    
-    // ★★★ 予約モーダル用のDOM要素を追加 ★★★
     const bookingModalBackdrop = document.getElementById('bookingModalBackdrop');
     const bookingModal = document.getElementById('bookingModal');
     const bookingResourceName = document.getElementById('bookingResourceName');
@@ -55,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBookingBtn = document.getElementById('saveBookingBtn');
     const cancelBookingBtn = document.getElementById('cancelBookingBtn');
     
-    let bookingData = {}; // 予約情報を一時的に保持
+    let bookingData = {};
 
     // --- Resource Data ---
     const resourceCalendarItems = [
@@ -92,43 +90,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Auth Logic ---
     function handleAuthResponse(resp) {
         if (resp.error !== undefined) {
-            if (resp.error === 'popup_closed' || resp.error === 'user_cancel' || resp.error === 'immediate_failed') {
-                signInButton.style.display = 'block';
-            } else {
-                showError('認証中にエラーが発生しました: ' + JSON.stringify(resp));
-                signInButton.style.display = 'block';
-            }
+            if (resp.error === 'popup_closed' || resp.error === 'user_cancel' || resp.error === 'immediate_failed') { signInButton.style.display = 'block'; } else { showError('認証中にエラーが発生しました: ' + JSON.stringify(resp)); signInButton.style.display = 'block'; }
             return;
         }
-        signOutButton.style.display = 'block';
-        signInButton.style.display = 'none';
-        controlsWrapper.style.display = 'flex';
+        signOutButton.style.display = 'block'; signInButton.style.display = 'none'; controlsWrapper.style.display = 'flex';
         gapi.client.setToken({ access_token: resp.access_token });
         fetchData();
     }
-    
-    function trySilentSignIn() {
-        if (gapiInited && gisInited) {
-            tokenClient.callback = handleAuthResponse;
-            tokenClient.requestAccessToken({ prompt: 'none' });
-        }
-    }
-
-    signInButton.onclick = () => {
-        tokenClient.callback = handleAuthResponse;
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-    };
-
+    function trySilentSignIn() { if (gapiInited && gisInited) { tokenClient.callback = handleAuthResponse; tokenClient.requestAccessToken({ prompt: 'none' }); } }
+    signInButton.onclick = () => { tokenClient.callback = handleAuthResponse; tokenClient.requestAccessToken({ prompt: 'consent' }); };
     signOutButton.onclick = () => {
         const token = gapi.client.getToken();
         if (token !== null) {
             google.accounts.oauth2.revoke(token.access_token, () => {
-                gapi.client.setToken('');
-                dataDisplayArea.innerHTML = '';
-                controlsWrapper.style.display = 'none';
-                signInButton.style.display = 'block';
-                signOutButton.style.display = 'none';
-                showError('サインアウトしました。');
+                gapi.client.setToken(''); dataDisplayArea.innerHTML = ''; controlsWrapper.style.display = 'none';
+                signInButton.style.display = 'block'; signOutButton.style.display = 'none'; showError('サインアウトしました。');
             });
         }
     };
@@ -140,9 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeMinISO = new Date(new Date(selectedDate).setHours(0, 0, 0, 0)).toISOString();
         const timeMaxISO = new Date(new Date(selectedDate).setHours(23, 59, 59, 999)).toISOString();
         const idsToFetchDetails = resourceCalendarItems.map(item => item.id);
-
         if (idsToFetchDetails.length === 0) { showError("取得対象のリソースがありません。"); showLoading(false); return; }
-
         const allCalendarData = {};
         try {
             const requests = idsToFetchDetails.map(calendarId => gapi.client.calendar.events.list({ 'calendarId': calendarId, 'timeMin': timeMinISO, 'timeMax': timeMaxISO, 'showDeleted': false, 'singleEvents': true, 'maxResults': 50, 'orderBy': 'startTime' }));
@@ -150,16 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
             responses.forEach((response, index) => {
                 const calendarId = idsToFetchDetails[index];
                 if (response.status === 'fulfilled' && response.value.result) {
-                     allCalendarData[calendarId] = {
-                        items: response.value.result.items ? response.value.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, creator: event.creator ? (event.creator.displayName || event.creator.email) : '(作成者不明)', organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] })) : []
-                    };
+                     allCalendarData[calendarId] = { items: response.value.result.items ? response.value.result.items.map(event => ({ id: event.id, summary: event.summary || '(タイトルなし)', start: event.start, end: event.end, creator: event.creator ? (event.creator.displayName || event.creator.email) : '(作成者不明)', organizer: event.organizer ? (event.organizer.displayName || event.organizer.email) : '(主催者不明)', attendees: event.attendees ? event.attendees.map(att => att.displayName || att.email) : [] })) : [] };
                 } else {
                     console.error(`Error fetching events for ${calendarId}:`, response.reason || response.value);
                     allCalendarData[calendarId] = { items: [], errorDetails: response.reason || response.value };
                 }
             });
-            showLoading(false);
-            renderDailyMatrixView(allCalendarData);
+            showLoading(false); renderDailyMatrixView(allCalendarData);
         } catch (err) {
             showLoading(false); console.error("A critical error occurred: ", err); showError(`重大なエラーが発生しました: ${err.message || JSON.stringify(err)}`);
         }
@@ -175,140 +146,89 @@ document.addEventListener('DOMContentLoaded', () => {
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
         const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
+        const slotsPerHour = 60 / timeSlotInterval;
         for (let h = startHour; h < endHour; h++) {
             const thHour = document.createElement('th');
-            thHour.colSpan = 60 / timeSlotInterval; 
+            thHour.colSpan = slotsPerHour;
             thHour.textContent = `${String(h).padStart(2, '0')}:00`;
             headerRow.appendChild(thHour);
         }
-        
         const tbody = table.createTBody();
         resourceCalendarItems.forEach((room, index) => {
             const roomRow = tbody.insertRow();
-            if (index > 0 && room.type === 'car' && resourceCalendarItems[index - 1].type === 'room') {
-                roomRow.classList.add('group-separator');
-            }
-            if (room.type === 'car') {
-                roomRow.classList.add('car-row');
-            }
+            if (index > 0 && room.type === 'car' && resourceCalendarItems[index - 1].type === 'room') { roomRow.classList.add('group-separator'); }
+            if (room.type === 'car') { roomRow.classList.add('car-row'); }
             const tdRoomName = roomRow.insertCell();
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-            for (let h = startHour; h < endHour; h++) {
-                for (let m = 0; m < 60; m += timeSlotInterval) {
-                    const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
-                    const slotEndTime = new Date(selectedDate); slotEndTime.setHours(h, m + timeSlotInterval, 0, 0);
-                    let overlappingEvent = null;
-                    if (roomData && roomData.items) {
-                        for (const event of roomData.items) {
-                            const eventStart = new Date(event.start.dateTime || event.start.date);
-                            const eventEnd = new Date(event.end.dateTime || event.end.date);
-                            if (eventStart < slotEndTime && eventEnd > slotStartTime) {
-                                overlappingEvent = event;
-                                break;
-                            }
+            let m = 0;
+            while (m < (endHour - startHour) * slotsPerHour) {
+                const currentSlot = m;
+                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(startHour, currentSlot * timeSlotInterval, 0, 0);
+                const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
+                let overlappingEvent = null;
+                if (roomData && roomData.items) {
+                    for (const event of roomData.items) {
+                        const eventStart = new Date(event.start.dateTime || event.start.date);
+                        const eventEnd = new Date(event.end.dateTime || event.end.date);
+                        if (eventStart < slotEndTime && eventEnd > slotStartTime) {
+                            overlappingEvent = event;
+                            break;
                         }
                     }
-                    if (overlappingEvent) {
-                        const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
-                        if (eventStart >= slotStartTime && eventStart < slotEndTime) {
-                           const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
-                           const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
-                           const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
-                           const tdHourStatus = roomRow.insertCell();
-                           tdHourStatus.colSpan = colspanCount;
-                           tdHourStatus.textContent = overlappingEvent.summary;
-                           const eventTime = formatEventTime(overlappingEvent.start, overlappingEvent.end);
-                           let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
-                           tdHourStatus.title = titleDetails;
-                           tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
-                           m += timeSlotInterval * (colspanCount - 1);
-                        }
-                    } else {
+                }
+                if (overlappingEvent) {
+                    const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
+                    const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
+                    const startSlot = Math.floor((eventStart.getHours() - startHour) * slotsPerHour + eventStart.getMinutes() / timeSlotInterval);
+                    if (currentSlot === startSlot) {
+                        const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
+                        const colspanCount = Math.ceil(durationInMinutes / timeSlotInterval);
                         const tdHourStatus = roomRow.insertCell();
-                        tdHourStatus.classList.add('matrix-cell-available');
-                        tdHourStatus.onclick = () => openBookingModal(room, slotStartTime); // ★空きセルにクリックイベントを追加
+                        tdHourStatus.colSpan = colspanCount;
+                        tdHourStatus.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
+                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
+                        tdHourStatus.title = titleDetails;
+                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
+                        m += colspanCount;
+                    } else {
+                        m++;
                     }
+                } else {
+                    const tdHourStatus = roomRow.insertCell();
+                    tdHourStatus.classList.add('matrix-cell-available');
+                    tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
+                    m++;
                 }
             }
         });
         dataDisplayArea.appendChild(table);
     }
     
-    // ★★★ 予約モーダルを開く関数 ★★★
     function openBookingModal(room, startTime) {
-        const endTime = new Date(startTime.getTime() + 30 * 60000); // デフォルトで30分の予定
-        bookingData = {
-            room: room,
-            start: startTime,
-            end: endTime
-        };
-        
+        const endTime = new Date(startTime.getTime() + 30 * 60000);
+        bookingData = { room: room, start: startTime, end: endTime };
         bookingResourceName.textContent = room.name;
         bookingTime.textContent = formatEventTime({dateTime: startTime.toISOString()}, {dateTime: endTime.toISOString()});
-        eventTitleInput.value = '';
-        eventGuestsInput.value = '';
-
-        bookingModal.style.display = 'block';
-        bookingModalBackdrop.style.display = 'block';
+        eventTitleInput.value = ''; eventGuestsInput.value = '';
+        bookingModal.style.display = 'block'; bookingModalBackdrop.style.display = 'block';
     }
-    
-    // ★★★ 予約モーダルを閉じる関数 ★★★
-    function closeBookingModal() {
-        bookingModal.style.display = 'none';
-        bookingModalBackdrop.style.display = 'none';
-    }
-
-    // ★★★ 予約を作成する関数 ★★★
+    function closeBookingModal() { bookingModal.style.display = 'none'; bookingModalBackdrop.style.display = 'none'; }
     async function createCalendarEvent() {
         const summary = eventTitleInput.value;
-        if (!summary) {
-            alert('会議名を入力してください。');
-            return;
-        }
-
-        const guests = eventGuestsInput.value.split(',')
-            .map(email => email.trim())
-            .filter(email => email) // 空の文字列を除外
-            .map(email => ({ 'email': email }));
-        
-        // 会議室自体も参加者として追加
+        if (!summary) { alert('会議名を入力してください。'); return; }
+        const guests = eventGuestsInput.value.split(',').map(email => email.trim()).filter(email => email).map(email => ({ 'email': email }));
         guests.push({ 'email': bookingData.room.id });
-
-        const eventResource = {
-            'summary': summary,
-            'start': {
-                'dateTime': bookingData.start.toISOString(),
-                'timeZone': 'Asia/Tokyo'
-            },
-            'end': {
-                'dateTime': bookingData.end.toISOString(),
-                'timeZone': 'Asia/Tokyo'
-            },
-            'attendees': guests
-        };
-
+        const eventResource = { 'summary': summary, 'start': { 'dateTime': bookingData.start.toISOString(), 'timeZone': 'Asia/Tokyo' }, 'end': { 'dateTime': bookingData.end.toISOString(), 'timeZone': 'Asia/Tokyo' }, 'attendees': guests };
         try {
-            // ユーザーのプライマリカレンダーに予定を作成
-            await gapi.client.calendar.events.insert({
-                'calendarId': 'primary',
-                'resource': eventResource
-            });
-            alert('予約が作成されました。');
-            closeBookingModal();
-            fetchData(); // 予約後にマトリクスを更新
-        } catch (err) {
-            console.error('Error creating event:', err);
-            alert(`予約の作成に失敗しました: ${err.result.error.message}`);
-        }
+            await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': eventResource });
+            alert('予約が作成されました。'); closeBookingModal(); fetchData();
+        } catch (err) { console.error('Error creating event:', err); alert(`予約の作成に失敗しました: ${err.result.error.message}`); }
     }
-
-    // ★★★ モーダルのイベントリスナーを追加 ★★★
     cancelBookingBtn.onclick = closeBookingModal;
     bookingModalBackdrop.onclick = closeBookingModal;
     saveBookingBtn.onclick = createCalendarEvent;
-
 
     // --- UI Control Logic ---
     function navigateDay(offset) {
