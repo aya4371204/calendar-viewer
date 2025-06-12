@@ -238,11 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-            let m = 0;
-            while (m < (endHour - startHour) * slotsPerHour) {
-                const currentHour = startHour + Math.floor(m / slotsPerHour);
-                const currentMinute = (m % slotsPerHour) * timeSlotInterval;
-                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(currentHour, currentMinute, 0, 0);
+            let currentColumn = 0;
+            while (currentColumn < (endHour - startHour) * slotsPerHour) {
+                const h = startHour + Math.floor(currentColumn / slotsPerHour);
+                const m = (currentColumn % slotsPerHour) * timeSlotInterval;
+                const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
                 const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
                 let overlappingEvent = null;
                 if (roomData && roomData.items) {
@@ -264,24 +264,24 @@ document.addEventListener('DOMContentLoaded', () => {
                        const tdHourStatus = roomRow.insertCell();
                        tdHourStatus.colSpan = colspanCount;
                        
+                       // ★★★ 修正箇所: 会議情報を表示するバーを生成 ★★★
                        const eventDiv = document.createElement('div');
                        eventDiv.classList.add('event-bar');
                        eventDiv.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
                        tdHourStatus.appendChild(eventDiv);
-
+                       
                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
-                       tdHourStatus.classList.add('matrix-cell-busy');
-                       tdHourStatus.classList.add('event-start');
-                       m += colspanCount;
+                       tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
+                       currentColumn += colspanCount;
                     } else {
-                        m++;
+                        currentColumn++;
                     }
                 } else {
                     const tdHourStatus = roomRow.insertCell();
                     tdHourStatus.classList.add('matrix-cell-available');
                     tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
-                    m++;
+                    currentColumn++;
                 }
             }
         });
