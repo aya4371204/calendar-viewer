@@ -263,12 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
                        const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                        const tdHourStatus = roomRow.insertCell();
                        tdHourStatus.colSpan = colspanCount;
-                       tdHourStatus.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
-                        // ★★★ 修正箇所: 会議情報を表示するバーを生成 ★★★
+                       
                        const eventDiv = document.createElement('div');
                        eventDiv.classList.add('event-bar');
                        eventDiv.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
                        tdHourStatus.appendChild(eventDiv);
+                       
                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
