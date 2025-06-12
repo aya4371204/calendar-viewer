@@ -16,34 +16,16 @@
         #date-controls input, #date-controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #table-container { overflow: auto; width: 100%; max-height: 85vh; margin-top: 15px; border: 1px solid #ccc; }
         #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px; text-align: center; font-size: 11px; vertical-align: middle; height: 35px; }
+        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px 4px; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
         #dailyMatrixTable thead th { background-color: #f1f1f1; font-weight: normal; color: #666; position: sticky; top: 0; z-index: 10; white-space: nowrap; border-left: none; border-right: none; }
         #dailyMatrixTable thead th.hour-header { font-weight: bold; color: #333; background-color: #e9ecef; }
         #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
         #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
-        #dailyMatrixTable tbody td:not(:first-child), #dailyMatrixTable thead th:not(:first-child) { width: 160px; }
-        .matrix-cell-busy { background-color: #ffebee; cursor: not-allowed; padding: 2px; }
-        .matrix-cell-available { background-color: #e8f5e9; cursor: pointer; }
-        .matrix-cell-available:hover { background-color: #c8e6c9; }
-        
-        /* ★★★ 修正箇所 ★★★ */
-        .event-bar {
-            background: linear-gradient(to bottom, #ef5350, #d32f2f);
-            color: white;
-            border-radius: 3px;
-            padding: 1px 4px;
-            font-size: 9px;
-            line-height: 1.2;
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
-            display: block;
-            overflow: hidden;
-            white-space: pre-wrap; /* 改行コード(\n)を認識 */
-            text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
-            border-bottom: 1px solid #b71c1c;
-        }
-
+        #dailyMatrixTable tbody td:not(:first-child) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 5px; }
+        .matrix-cell-busy { background-color: #fadbd8; color: #333; cursor: not-allowed; text-align: left; }
+        .matrix-cell-busy.event-start { border-left: 3px solid #c0392b; }
+        .matrix-cell-available { background-color: #d5f5e3; cursor: pointer; }
+        .matrix-cell-available:hover { background-color: #b7e4c7; }
         #dailyMatrixTable tr.car-row td:first-child { background-color: #e3f2fd; color: #0d47a1; }
         #dailyMatrixTable tr.group-separator { border-top: 2px solid #666; }
         .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; }
@@ -54,7 +36,10 @@
         .modal-body label { display: block; margin-bottom: 5px; font-weight: bold; }
         .modal-body input, .modal-body textarea, .modal-body select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
         .time-select-group { display: flex; align-items: center; gap: 10px; }
-        #targetCalendarSelect { width: 100%; padding: 8px; }
+        #calendarListContainer { max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; }
+        #calendarListContainer div { display: flex; align-items: center; margin-bottom: 5px; } 
+        #calendarListContainer label { font-weight: normal; margin-left: 8px; cursor: pointer; }
+        #calendarListContainer input[type="radio"] { margin: 0; cursor: pointer; flex-shrink: 0; }
         .modal-footer { text-align: right; margin-top: 20px; }
         .modal-footer button { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; margin-left: 10px; }
         #saveBookingBtn { background-color: #28a745; color: white; }
