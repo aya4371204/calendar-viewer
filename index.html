@@ -15,19 +15,17 @@
         #date-controls label { margin-right: 10px; }
         #date-controls input, #date-controls button { padding: 8px; font-size: 14px; border-radius: 5px; border: 1px solid #ccc; }
         #table-container { overflow: auto; width: 100%; max-height: 85vh; margin-top: 15px; border: 1px solid #ccc; }
-        #dailyMatrixTable { width: auto; border-collapse: collapse; table-layout: fixed; }
-        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 2px; text-align: center; font-size: 11px; vertical-align: middle; }
-        #dailyMatrixTable thead th { position: sticky; z-index: 10; background-color: #e9ecef; }
-        #dailyMatrixTable thead .header-row-1 th { top: 0; height: 28px; }
-        #dailyMatrixTable thead .header-row-2 th { top: 28px; background-color: #f1f1f1; font-weight: normal; color: #666; height: 22px; }
+        #dailyMatrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        #dailyMatrixTable th, #dailyMatrixTable td { border: 1px solid #ddd; padding: 0; text-align: center; font-size: 11px; vertical-align: middle; height: 28px; }
+        #dailyMatrixTable thead th { background-color: #f1f1f1; font-weight: normal; color: #666; position: sticky; top: 0; z-index: 10; white-space: nowrap; border-left: none; border-right: none; }
+        #dailyMatrixTable thead th.hour-header { font-weight: bold; color: #333; background-color: #e9ecef; }
         #dailyMatrixTable thead th:first-child { background-color: #e0e0e0; width: 120px; text-align: left; padding-left: 10px; position: sticky; left: 0; z-index: 12; }
-        #dailyMatrixTable tbody td { height: 32px; }
         #dailyMatrixTable tbody td:first-child { width: 120px; white-space: nowrap; background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; overflow: hidden; text-overflow: ellipsis; position: sticky; left: 0; z-index: 2; }
-        #dailyMatrixTable tbody td:not(:first-child), #dailyMatrixTable thead .header-row-2 th { width: 30px; }
+        #dailyMatrixTable tbody td:not(:first-child), #dailyMatrixTable thead th:not(:first-child) { width: 30px; }
         .matrix-cell-busy { background-color: #ffebee; cursor: not-allowed; padding: 2px; }
         .matrix-cell-available { background-color: #e8f5e9; cursor: pointer; }
         .matrix-cell-available:hover { background-color: #c8e6c9; }
-        .event-bar { background-color: #d32f2f; color: white; border-radius: 4px; padding: 2px 5px; font-size: 11px; font-weight: 500; width: 100%; height: 100%; box-sizing: border-box; display: flex; align-items: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 2px solid #b71c1c; box-shadow: inset 0 1px 1px rgba(255,255,255,0.25); }
+        .event-bar { background: linear-gradient(to bottom, #ef5350, #d32f2f); color: white; border-radius: 3px; padding: 2px 5px; font-size: 11px; font-weight: 500; width: 100%; height: 100%; box-sizing: border-box; display: flex; align-items: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 1px solid #b71c1c; text-shadow: 0 -1px 0 rgba(0,0,0,0.2); }
         #dailyMatrixTable tr.car-row td:first-child { background-color: #e3f2fd; color: #0d47a1; }
         #dailyMatrixTable tr.group-separator { border-top: 2px solid #666; }
         .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; }
