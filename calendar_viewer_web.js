@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const eventDiv = document.createElement('div');
                     eventDiv.classList.add('event-bar');
-                    eventDiv.textContent = `> ${formatEventTime(slotData.event.start, slotData.event.end)} ${slotData.event.summary}`;
+                    eventDiv.textContent = `${formatEventTime(slotData.event.start, slotData.event.end)}\n${slotData.event.summary}`;
                     tdHourStatus.appendChild(eventDiv);
                     
                     let titleDetails = `会議時間: ${formatEventTime(slotData.event.start, slotData.event.end)}\n会議名: ${slotData.event.summary}\n作成者: ${slotData.event.creator || slotData.event.organizer || '(不明)'}\nゲスト: ${slotData.event.attendees && slotData.event.attendees.length > 0 ? slotData.event.attendees.join(', ') : "なし"}`;
