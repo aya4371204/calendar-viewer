@@ -82,8 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
-    function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
-    function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
     function formatTime(date) {
         const h = String(date.getHours()).padStart(2, '0');
         const m = String(date.getMinutes()).padStart(2, '0');
@@ -265,12 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                        const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
                        const tdHourStatus = roomRow.insertCell();
                        tdHourStatus.colSpan = colspanCount;
-                       
-                       const eventDiv = document.createElement('div');
-                       eventDiv.classList.add('event-bar');
-                       eventDiv.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
-                       tdHourStatus.appendChild(eventDiv);
-                       
+                       tdHourStatus.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
