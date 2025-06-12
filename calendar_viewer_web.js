@@ -82,8 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
-    function getMonday(d) { d = new Date(d); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1); return new Date(d.setDate(diff)); }
-    function formatDate(date) { const y = date.getFullYear(), m = ('0' + (date.getMonth() + 1)).slice(-2), d = ('0' + date.getDate()).slice(-2); return `${y}/${m}/${d}`; }
     function formatTime(date) {
         const h = String(date.getHours()).padStart(2, '0');
         const m = String(date.getMinutes()).padStart(2, '0');
@@ -223,13 +221,17 @@ document.addEventListener('DOMContentLoaded', () => {
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
         const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
-        const slotsPerHour = 60 / timeSlotInterval;
+        // ★★★ ヘッダーを15分単位で生成するように修正 ★★★
         for (let h = startHour; h < endHour; h++) {
             for (let m = 0; m < 60; m += timeSlotInterval) {
                 const thHour = document.createElement('th');
                 if (m === 0) {
                     thHour.textContent = `${String(h).padStart(2, '0')}:00`;
                     thHour.style.borderLeft = '2px solid #bbb';
+                } else {
+                    thHour.textContent = `:${String(m).padStart(2, '0')}`;
+                    thHour.style.fontSize = '9px'; // 分表示のフォントを小さく
+                    thHour.style.color = '#777';
                 }
                 headerRow.appendChild(thHour);
             }
@@ -244,40 +246,66 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-            for (let h = startHour; h < endHour; h++) {
-                for (let m = 0; m < 60; m += timeSlotInterval) {
-                    const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
-                    const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
-                    let overlappingEvent = null;
-                    if (roomData && roomData.items) {
-                        for (const event of roomData.items) {
-                            const eventStart = new Date(event.start.dateTime || event.start.date);
-                            const eventEnd = new Date(event.end.dateTime || event.end.date);
-                            if (eventStart < slotEndTime && eventEnd > slotStartTime) {
-                                overlappingEvent = event;
-                                break;
+            
+            // ★★★ セル結合ロジックを全面的に修正 ★★★
+            const slots = new Array((endHour - startHour) * (60 / timeSlotInterval)).fill(null);
+            if(roomData && roomData.items) {
+                roomData.items.forEach(event => {
+                    const eventStart = new Date(event.start.dateTime || event.start.date);
+                    const eventEnd = new Date(event.end.dateTime || event.end.date);
+                    const dayStart = new Date(selectedDate); dayStart.setHours(startHour, 0, 0, 0);
+                    const dayEnd = new Date(selectedDate); dayEnd.setHours(endHour, 0, 0, 0);
+                    
+                    const effectiveStart = eventStart > dayStart ? eventStart : dayStart;
+                    const effectiveEnd = eventEnd < dayEnd ? eventEnd : dayEnd;
+
+                    const startMinutes = (effectiveStart.getHours() * 60) + effectiveStart.getMinutes();
+                    const endMinutes = (effectiveEnd.getHours() * 60) + effectiveEnd.getMinutes();
+                    
+                    const startIndex = Math.floor((startMinutes - startHour * 60) / timeSlotInterval);
+                    const endIndex = Math.ceil((endMinutes - startHour * 60) / timeSlotInterval);
+                    
+                    for (let i = startIndex; i < endIndex; i++) {
+                        if (i >= 0 && i < slots.length) {
+                            if (slots[i] === null) {
+                                slots[i] = { event: event, isStart: (i === startIndex) };
                             }
                         }
                     }
-                    if (overlappingEvent) {
-                        const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
-                        if (eventStart >= slotStartTime && eventStart < slotEndTime) {
-                           const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
-                           const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
-                           const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
-                           const tdHourStatus = roomRow.insertCell();
-                           tdHourStatus.colSpan = colspanCount;
-                           tdHourStatus.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
-                           let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
-                           tdHourStatus.title = titleDetails;
-                           tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
-                           m += timeSlotInterval * (colspanCount - 1);
+                });
+            }
+
+            for (let i = 0; i < slots.length; ) {
+                const slotData = slots[i];
+                if (slotData) {
+                    let colspanCount = 1;
+                    for (let j = i + 1; j < slots.length; j++) {
+                        if (slots[j] && slots[j].event.id === slotData.event.id) {
+                            colspanCount++;
+                        } else {
+                            break;
                         }
-                    } else {
-                        const tdHourStatus = roomRow.insertCell();
-                        tdHourStatus.classList.add('matrix-cell-available');
-                        tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
                     }
+                    const tdHourStatus = roomRow.insertCell();
+                    tdHourStatus.colSpan = colspanCount;
+                    const eventTime = formatEventTime(slotData.event.start, slotData.event.end);
+                    tdHourStatus.textContent = `> ${eventTime} ${slotData.event.summary}`;
+                    let titleDetails = `会議時間: ${eventTime}\n会議名: ${slotData.event.summary}\n作成者: ${slotData.event.creator || slotData.event.organizer || '(不明)'}\nゲスト: ${slotData.event.attendees && slotData.event.attendees.length > 0 ? slotData.event.attendees.join(', ') : "なし"}`;
+                    tdHourStatus.title = titleDetails;
+                    tdHourStatus.classList.add('matrix-cell-busy');
+                    if (slotData.isStart) {
+                         tdHourStatus.classList.add('event-start');
+                    }
+                    i += colspanCount;
+                } else {
+                    const slotStartTime = new Date(selectedDate);
+                    const h = startHour + Math.floor(i / (60 / timeSlotInterval));
+                    const m = (i % (60 / timeSlotInterval)) * timeSlotInterval;
+                    slotStartTime.setHours(h, m, 0, 0);
+                    const tdHourStatus = roomRow.insertCell();
+                    tdHourStatus.classList.add('matrix-cell-available');
+                    tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
+                    i++;
                 }
             }
         });
