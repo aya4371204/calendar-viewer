@@ -264,15 +264,13 @@ document.addEventListener('DOMContentLoaded', () => {
                        const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
                        const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
                        const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
-                       tdHourStatus.colSpan = colspanCount;
                        
                        const eventDiv = document.createElement('div');
                        eventDiv.classList.add('event-bar');
-                       const eventTime = formatEventTime(overlappingEvent.start, overlappingEvent.end);
-                       eventDiv.textContent = `${eventTime}\n${overlappingEvent.summary}`;
+                       eventDiv.textContent = `> ${formatEventTime(overlappingEvent.start, overlappingEvent.end)} ${overlappingEvent.summary}`;
                        tdHourStatus.appendChild(eventDiv);
                        
-                       let titleDetails = `会議時間: ${eventTime}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
+                       let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
                        i += colspanCount;
