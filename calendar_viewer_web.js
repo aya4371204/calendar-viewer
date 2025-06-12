@@ -223,15 +223,12 @@ document.addEventListener('DOMContentLoaded', () => {
         thRoomHeader.textContent = 'リソース';
         headerRow.appendChild(thRoomHeader);
         const startHour = 8; const endHour = 19; const timeSlotInterval = 15;
+        const slotsPerHour = 60 / timeSlotInterval;
         for (let h = startHour; h < endHour; h++) {
-            for (let m = 0; m < 60; m += timeSlotInterval) {
-                const thHour = document.createElement('th');
-                if (m === 0) {
-                    thHour.textContent = `${String(h).padStart(2, '0')}:00`;
-                    thHour.style.borderLeft = '2px solid #bbb';
-                }
-                headerRow.appendChild(thHour);
-            }
+            const thHour = document.createElement('th');
+            thHour.colSpan = slotsPerHour;
+            thHour.textContent = `${String(h).padStart(2, '0')}:00`;
+            headerRow.appendChild(thHour);
         }
         
         const tbody = table.createTBody();
@@ -243,9 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
             tdRoomName.textContent = room.name;
             tdRoomName.title = room.name;
             const roomData = calendarsEventData[room.id];
-            for (let i = 0; i < (endHour - startHour) * (60 / timeSlotInterval); ) {
-                const h = startHour + Math.floor(i / (60 / timeSlotInterval));
-                const m = (i % (60 / timeSlotInterval)) * timeSlotInterval;
+            let currentColumn = 0;
+            while (currentColumn < (endHour - startHour) * slotsPerHour) {
+                const h = startHour + Math.floor(currentColumn / slotsPerHour);
+                const m = (currentColumn % slotsPerHour) * timeSlotInterval;
                 const slotStartTime = new Date(selectedDate); slotStartTime.setHours(h, m, 0, 0);
                 const slotEndTime = new Date(slotStartTime.getTime() + timeSlotInterval * 60000);
                 let overlappingEvent = null;
@@ -259,13 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-                const tdHourStatus = roomRow.insertCell();
                 if (overlappingEvent) {
                     const eventStart = new Date(overlappingEvent.start.dateTime || overlappingEvent.start.date);
                     if (eventStart >= slotStartTime && eventStart < slotEndTime) {
                        const eventEnd = new Date(overlappingEvent.end.dateTime || overlappingEvent.end.date);
                        const durationInMinutes = (eventEnd - eventStart) / (1000 * 60);
                        const colspanCount = Math.max(1, Math.ceil(durationInMinutes / timeSlotInterval));
+                       const tdHourStatus = roomRow.insertCell();
+                       tdHourStatus.colSpan = colspanCount;
                        
                        const eventDiv = document.createElement('div');
                        eventDiv.classList.add('event-bar');
@@ -275,14 +274,15 @@ document.addEventListener('DOMContentLoaded', () => {
                        let titleDetails = `会議時間: ${formatEventTime(overlappingEvent.start, overlappingEvent.end)}\n会議名: ${overlappingEvent.summary}\n作成者: ${overlappingEvent.creator || overlappingEvent.organizer || '(不明)'}\nゲスト: ${overlappingEvent.attendees && overlappingEvent.attendees.length > 0 ? overlappingEvent.attendees.join(', ') : "なし"}`;
                        tdHourStatus.title = titleDetails;
                        tdHourStatus.classList.add('matrix-cell-busy', 'event-start');
-                       i += colspanCount;
+                       currentColumn += colspanCount;
                     } else {
-                        i++;
+                        currentColumn++;
                     }
                 } else {
+                    const tdHourStatus = roomRow.insertCell();
                     tdHourStatus.classList.add('matrix-cell-available');
                     tdHourStatus.onclick = () => openBookingModal(room, slotStartTime);
-                    i++;
+                    currentColumn++;
                 }
             }
         });
