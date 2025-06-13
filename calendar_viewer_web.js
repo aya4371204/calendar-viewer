@@ -193,22 +193,41 @@ document.addEventListener('DOMContentLoaded', () => {
         bookingModalBackdrop.style.display = 'block';
     }
     function closeBookingModal() { bookingModal.style.display = 'none'; bookingModalBackdrop.style.display = 'none'; }
-    async function createCalendarEvent() {
-        const summary = eventTitleInput.value;
-        if (!summary) { alert('会議名を入力してください。'); return; }
-        const targetCalendarId = targetCalendarSelect.value;
-        if (!targetCalendarId) { alert('作成先のカレンダーを選択してください。'); return; }
-        const eventResource = {
-            'summary': summary,
-            'start': { 'dateTime': bookingStartTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
-            'end': { 'dateTime': bookingEndTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
-            'attendees': [{ 'email': bookingData.room.id }]
-        };
-        try {
-            await gapi.client.calendar.events.insert({ 'calendarId': targetCalendarId, 'resource': eventResource, 'sendUpdates': 'all' });
-            alert('予約が作成されました。'); closeBookingModal(); fetchData();
-        } catch (err) { console.error('Error creating event:', err); alert(`予約の作成に失敗しました: ${err.result.error.message}`); }
-    }
+async function createCalendarEvent() {
+    const summary = eventTitleInput.value;
+    if (!summary) { alert('会議名を入力してください。'); return; }
+    const targetCalendarId = targetCalendarSelect.value;
+    if (!targetCalendarId) { alert('作成先のカレンダーを選択してください。'); return; }
+    const eventResource = {
+        'summary': summary,
+        'start': { 'dateTime': bookingStartTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
+        'end': { 'dateTime': bookingEndTimeSelect.value, 'timeZone': 'Asia/Tokyo' },
+        'attendees': [{ 'email': bookingData.room.id }]
+    };
+    try {
+        // 予定作成APIのレスポンスを受け取るように変更
+        const response = await gapi.client.calendar.events.insert({ 'calendarId': targetCalendarId, 'resource': eventResource, 'sendUpdates': 'all' });
+        
+        // 先にモーダルを閉じてカレンダーを更新
+        closeBookingModal();
+        fetchData();
+
+        // confirmダイアログで、詳細情報を編集するかユーザーに確認
+        const openDetails = confirm('予約が作成されました。\n続けて詳細情報（ゲストや添付資料など）を編集しますか？');
+        
+        // 「はい」(OK)が押された場合
+        if (openDetails) {
+            // レスポンスからイベントのURL(htmlLink)を取得
+            const eventUrl = response.result.htmlLink;
+            if (eventUrl) {
+                // 新しいタブでGoogleカレンダーのイベント編集画面を開く
+                window.open(eventUrl, '_blank');
+            } else {
+                alert('詳細情報の編集画面を開けませんでした。');
+            }
+        }
+    } catch (err) { console.error('Error creating event:', err); alert(`予約の作成に失敗しました: ${err.result.error.message}`); }
+}
     cancelBookingBtn.onclick = closeBookingModal;
     bookingModalBackdrop.onclick = closeBookingModal;
     saveBookingBtn.onclick = createCalendarEvent;
