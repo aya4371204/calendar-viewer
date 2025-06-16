@@ -76,9 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "アクア", id: "c_1882goec90jfojkigr38jcc72sadu@resource.calendar.google.com", type: "car" }
     ];
 
-    // --- State Variables ---
-    let selectedDate = new Date();
-
+// --- State Variables ---
+    // ★★★ 修正箇所: 日本時間での今日の日付を取得 ★★★
+    const jstNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+    let selectedDate = new Date(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate());
+    
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
