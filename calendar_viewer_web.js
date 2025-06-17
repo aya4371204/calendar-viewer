@@ -78,9 +78,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- State Variables ---
     // ★★★ 修正箇所: 日本時間での今日の日付を取得 ★★★
-    const jstNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
-    let selectedDate = new Date(jstNow.getFullYear(), jstNow.getMonth(), jstNow.getDate());
+    // 'Asia/Tokyo'タイムゾーンでの日付部分を取得するためのフォーマッターを作成
+    const jstFormatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+    });
     
+    // 現在時刻をフォーマットして、日本の年・月・日の部分を取得
+    const parts = jstFormatter.formatToParts(new Date());
+    const year = parseInt(parts.find(p => p.type === 'year').value, 10);
+    const month = parseInt(parts.find(p => p.type === 'month').value, 10);
+    const day = parseInt(parts.find(p => p.type === 'day').value, 10);
+
+    // 取得した年・月・日を使用してDateオブジェクトを作成
+    // Dateコンストラクタの月は0から始まるため、-1 する
+    let selectedDate = new Date(year, month - 1, day);
+
     // --- Helper Functions ---
     function showLoading(isLoading) { if (loadingDiv) loadingDiv.style.display = isLoading ? 'block' : 'none'; }
     function showError(message) { if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = message ? 'block' : 'none'; } }
