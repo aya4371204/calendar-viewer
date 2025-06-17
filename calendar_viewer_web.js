@@ -364,8 +364,19 @@ async function createCalendarEvent() {
     // --- App Initialization ---
     (function initializeApp() {
         if (resourceCalendarItems.length === 0) { showError("確認するリソースカレンダーが設定されていません。"); return; }
-        dailyDatePicker.valueAsDate = selectedDate;
-        dailyDatePicker.addEventListener('change', () => { selectedDate = dailyDatePicker.valueAsDate; if (gapi.client.getToken()) fetchData(); });
+        // selectedDateオブジェクトから 'YYYY-MM-DD' 形式の文字列を生成
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDate.getDate()).padStart(2, '0');
+    dailyDatePicker.value = `${y}-${m}-${d}`;
+    
+    // changeイベントリスナーも、valueプロパティから日付を読み取るように修正
+    dailyDatePicker.addEventListener('change', () => {
+    // 'YYYY-MM-DD'文字列を分割して、ローカルタイムゾーンのDateオブジェクトを再生成
+    const parts = dailyDatePicker.value.split('-').map(Number);
+    selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+    if (gapi.client.getToken()) fetchData();
+});
         prevDayBtn.addEventListener('click', () => navigateDay(-1));
         nextDayBtn.addEventListener('click', () => navigateDay(1));
         document.addEventListener('gapiReady', trySilentSignIn);
