@@ -355,11 +355,21 @@ async function createCalendarEvent() {
     }
     
     // --- UI Control Logic ---
-    function navigateDay(offset) {
-        selectedDate.setDate(selectedDate.getDate() + offset);
-        dailyDatePicker.valueAsDate = selectedDate;
-        if (gapi.client.getToken()) fetchData();
-    }
+function navigateDay(offset) {
+    // selectedDate変数の日付を更新
+    selectedDate.setDate(selectedDate.getDate() + offset);
+
+    // Dateオブジェクトから 'YYYY-MM-DD' 形式の文字列を生成
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDate.getDate()).padStart(2, '0');
+    
+    // タイムゾーン問題のある valueAsDate の代わりに、value プロパティに文字列を直接設定
+    dailyDatePicker.value = `${y}-${m}-${d}`;
+
+    // 更新された日付でデータを取得
+    if (gapi.client.getToken()) fetchData();
+}
 
     // --- App Initialization ---
     (function initializeApp() {
