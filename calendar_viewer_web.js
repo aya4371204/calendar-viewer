@@ -252,6 +252,26 @@ async function createCalendarEvent() {
     // --- Rendering Logic ---
     function renderDailyMatrixView(calendarsEventData) {
         dataDisplayArea.innerHTML = '';
+
+        // 表示する日付の要素を作成
+        const dateDisplay = document.createElement('h3');
+        
+        // selectedDate変数から年月日と曜日を取得
+        const y = selectedDate.getFullYear();
+        const m = selectedDate.getMonth() + 1;
+        const d = selectedDate.getDate();
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][selectedDate.getDay()];
+        
+        // テキストとスタイルを設定
+        dateDisplay.textContent = `${y}年${m}月${d}日 (${dayOfWeek}曜日)`;
+        dateDisplay.style.textAlign = 'center';
+        dateDisplay.style.color = '#333';
+        dateDisplay.style.fontSize = '1.2em';
+        dateDisplay.style.marginBottom = '15px';
+
+        // マトリクス表示エリア (dataDisplayArea) の先頭に日付を追加
+        dataDisplayArea.appendChild(dateDisplay);
+        
         const table = document.createElement('table'); table.id = 'dailyMatrixTable';
         const thead = table.createTHead();
         const headerRow1 = thead.insertRow(); headerRow1.className = 'header-row-1';
