@@ -72,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "TQ棟１F 南側", id: "c_1880t51gi8ei6hufjuapnk2s5a7ns@resource.calendar.google.com", type: "room" },
         { name: "TQ棟１F 北側", id: "c_18805c2gtqlrmgamn400g2mfl8gp0@resource.calendar.google.com", type: "room" },
         { name: "A棟包装会議室", id: "c_1884rmjrs0j4kio2kcj3s7ae7aki2@resource.calendar.google.com", type: "room" },
+        { name: "A棟製剤会議室", id: "c_18805ah32ohqogn6nc8vqts3ugr6c@resource.calendar.google.com", type: "room" },
+        { name: "B棟製剤会議室", id: "c_1889eimvpnuluin5jp91lfegv2omi@resource.calendar.google.com", type: "room" },
         { name: "ノア", id: "c_188610h41pnu2jrcgtt1daki34ccq@resource.calendar.google.com", type: "car" },
         { name: "アクア", id: "c_1882goec90jfojkigr38jcc72sadu@resource.calendar.google.com", type: "car" }
     ];
