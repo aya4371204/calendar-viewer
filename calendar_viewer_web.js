@@ -143,28 +143,41 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         const response = await gapi.client.calendar.calendarList.list();
         const calendars = response.result.items;
-        targetCalendarSelect.innerHTML = ''; // いったん空にする
+        targetCalendarSelect.innerHTML = ''; // 既存の選択肢をクリア
 
-        // まず、すべてのカレンダーをリストに追加する
+        let primaryCalendarId = null; // マイカレンダーのIDを一時的に保存する変数
+
+        // 手順1：まず、すべてのカレンダーを選択肢に追加する
         calendars.forEach((calendar) => {
             if (calendar.accessRole === 'owner' || calendar.accessRole === 'writer') {
                 const option = document.createElement('option');
                 option.value = calendar.id;
                 option.textContent = calendar.summary;
-                // メインカレンダーをデフォルトで選択する元のコードに戻す
-                if (calendar.primary) { 
-                    option.selected = true; 
-                }
                 targetCalendarSelect.appendChild(option);
+
+                // マイカレンダーのIDを覚えておく
+                if (calendar.primary) {
+                    primaryCalendarId = calendar.id;
+                }
             }
         });
 
-        // ★★★ 変更点 ★★★
-        // すべての選択肢を追加した後で、指定のIDで初期値を上書き設定する
-        targetCalendarSelect.value = 'rteikabo0e4p6gkd6gdfdbvmf4@group.calendar.google.com';
+        // 手順2：リスト作成後、初期値にしたいカレンダーのIDを定義
+        const desiredCalendarId = 'rteikabo0e4p6gkd6gdfdbvmf4@group.calendar.google.com';
 
-    } catch (err) { 
-        console.error("Error fetching calendar list", err); 
+        // 手順3：目的のIDが選択肢の中に存在するか確認
+        const desiredOptionExists = Array.from(targetCalendarSelect.options).some(opt => opt.value === desiredCalendarId);
+
+        if (desiredOptionExists) {
+            // 存在すれば、それを初期値として設定
+            targetCalendarSelect.value = desiredCalendarId;
+        } else if (primaryCalendarId) {
+            // 手順4：存在しない場合のみ、予備としてマイカレンダーを設定
+            targetCalendarSelect.value = primaryCalendarId;
+        }
+
+    } catch (err) {
+        console.error("Error fetching calendar list", err);
     }
 }
     
