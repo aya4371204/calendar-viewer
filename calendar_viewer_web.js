@@ -268,8 +268,8 @@ async function createCalendarEvent() {
         dateDisplay.textContent = `${y}年${m}月${d}日 (${dayOfWeek}曜日)`;
         dateDisplay.style.textAlign = 'center';
         dateDisplay.style.color = '#333';
-        dateDisplay.style.fontSize = '1.2em';
-        dateDisplay.style.marginBottom = '15px';
+        dateDisplay.style.fontSize = '1.0em';
+        dateDisplay.style.marginBottom = '5px';
 
         // マトリクス表示エリア (dataDisplayArea) の先頭に日付を追加
         dataDisplayArea.appendChild(dateDisplay);
