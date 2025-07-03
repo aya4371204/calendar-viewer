@@ -140,22 +140,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Data Fetching & Calendar List ---
     async function fetchAndPopulateCalendarList() {
-        try {
-            const response = await gapi.client.calendar.calendarList.list();
-            const calendars = response.result.items;
-            targetCalendarSelect.innerHTML = '';
-            calendars.forEach((calendar) => {
-                if (calendar.accessRole === 'owner' || calendar.accessRole === 'writer') {
-                    const option = document.createElement('option');
-                    option.value = calendar.id;
-                    option.textContent = calendar.summary;
-                    // ｢1.来客・会議・社用車｣ を初期値として選択する
-                    if (calendar.id === 'rteikabo0e4p6gkd6gdfdbvmf4@group.calendar.google.com') { option.selected = true; }
-                    targetCalendarSelect.appendChild(option);
+    try {
+        const response = await gapi.client.calendar.calendarList.list();
+        const calendars = response.result.items;
+        targetCalendarSelect.innerHTML = ''; // いったん空にする
+
+        // まず、すべてのカレンダーをリストに追加する
+        calendars.forEach((calendar) => {
+            if (calendar.accessRole === 'owner' || calendar.accessRole === 'writer') {
+                const option = document.createElement('option');
+                option.value = calendar.id;
+                option.textContent = calendar.summary;
+                // メインカレンダーをデフォルトで選択する元のコードに戻す
+                if (calendar.primary) { 
+                    option.selected = true; 
                 }
-            });
-        } catch (err) { console.error("Error fetching calendar list", err); }
+                targetCalendarSelect.appendChild(option);
+            }
+        });
+
+        // ★★★ 変更点 ★★★
+        // すべての選択肢を追加した後で、指定のIDで初期値を上書き設定する
+        targetCalendarSelect.value = 'rteikabo0e4p6gkd6gdfdbvmf4@group.calendar.google.com';
+
+    } catch (err) { 
+        console.error("Error fetching calendar list", err); 
     }
+}
     
     async function fetchData() {
         if (!gapi.client.getToken()) { showError("Googleアカウントでサインインしてください。"); return; }
