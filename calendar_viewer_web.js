@@ -149,7 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const option = document.createElement('option');
                     option.value = calendar.id;
                     option.textContent = calendar.summary;
-                    if (calendar.primary) { option.selected = true; }
+                    // ｢1.来客・会議・社用車｣ を初期値として選択する
+                    if (calendar.id === 'rteikabo0e4p6gkd6gdfdbvmf4@group.calendar.google.com') { option.selected = true; }
                     targetCalendarSelect.appendChild(option);
                 }
             });
