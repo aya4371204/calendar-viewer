@@ -252,9 +252,13 @@ async function createCalendarEvent() {
         // 予定作成APIのレスポンスを受け取るように変更
         const response = await gapi.client.calendar.events.insert({ 'calendarId': targetCalendarId, 'resource': eventResource, 'sendUpdates': 'all' });
         
-        // 先にモーダルを閉じてカレンダーを更新
+        // 先にモーダルを閉じる
         closeBookingModal();
-        fetchData();
+        
+        // 予約作成後に少し待ってからデータを再取得
+        setTimeout(() => {
+            fetchData();
+        }, 1000); // 1000ミリ秒 = 1秒待つ
 
         // confirmダイアログで、詳細情報を編集するかユーザーに確認
         const openDetails = confirm('予約が作成されました。\n続けて詳細情報（ゲストや添付資料など）を編集しますか？');
