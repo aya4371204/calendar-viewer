@@ -258,7 +258,7 @@ async function createCalendarEvent() {
         // 予約作成後に少し待ってからデータを再取得
         setTimeout(() => {
             fetchData();
-        }, 2000); // 1000ミリ秒 = 1秒待つ
+        }, 3000); // 3000ミリ秒 = 3秒待つ
 
         // confirmダイアログで、詳細情報を編集するかユーザーに確認
         const openDetails = confirm('予約が作成されました。\n続けて詳細情報（ゲストや添付資料など）を編集しますか？');
